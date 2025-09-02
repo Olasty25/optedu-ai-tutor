@@ -33,6 +33,12 @@ const Dashboard = () => {
     const name = localStorage.getItem("userName") || "Student";
     setUserName(name);
     
+    // Load study plans from localStorage
+    const savedPlans = localStorage.getItem("studyPlans");
+    if (savedPlans) {
+      setStudyPlans(JSON.parse(savedPlans));
+    }
+    
     // Check if user is logged in
     const isLoggedIn = localStorage.getItem("isLoggedIn");
     if (!isLoggedIn) {

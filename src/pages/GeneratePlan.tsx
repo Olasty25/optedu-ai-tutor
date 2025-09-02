@@ -18,10 +18,21 @@ const GeneratePlan = () => {
     if (title && description) {
       setIsGenerating(true);
       
-      // Simulate plan generation
+      // Simulate plan generation and save to localStorage
       setTimeout(() => {
+        const newPlan = {
+          id: Date.now().toString(),
+          title: title,
+          description: description,
+          progress: 0
+        };
+        
+        // Get existing plans and add new one
+        const existingPlans = JSON.parse(localStorage.getItem("studyPlans") || "[]");
+        const updatedPlans = [...existingPlans, newPlan];
+        localStorage.setItem("studyPlans", JSON.stringify(updatedPlans));
+        
         setIsGenerating(false);
-        // In real app, would create plan and redirect to it
         navigate("/dashboard");
       }, 2000);
     }

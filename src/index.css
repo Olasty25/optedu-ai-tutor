@@ -17,17 +17,17 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 220 70% 50%;
+    --primary: 214 95% 40%;
     --primary-foreground: 0 0% 98%;
-    --primary-glow: 220 70% 65%;
+    --primary-glow: 214 95% 55%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 214 32% 91%;
+    --secondary-foreground: 215 25% 27%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 214 32% 95%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 142 76% 36%;
+    --accent: 210 100% 45%;
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 84.2% 60.2%;
@@ -39,14 +39,14 @@ All colors MUST be HSL.
 
     --radius: 0.75rem;
 
-    /* Educational gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(220 70% 50%), hsl(142 76% 36%));
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(210 40% 98%));
-    --gradient-accent: linear-gradient(135deg, hsl(142 76% 36%), hsl(142 76% 45%));
+    /* Professional blue gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(214 95% 40%), hsl(210 100% 45%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%), hsl(214 32% 98%));
+    --gradient-accent: linear-gradient(135deg, hsl(210 100% 45%), hsl(214 95% 55%));
     
-    /* Shadows */
-    --shadow-soft: 0 4px 20px -2px hsl(220 70% 50% / 0.1);
-    --shadow-glow: 0 0 30px hsl(220 70% 65% / 0.3);
+    /* Professional shadows */
+    --shadow-soft: 0 4px 20px -2px hsl(214 95% 40% / 0.08);
+    --shadow-glow: 0 0 30px hsl(214 95% 55% / 0.15);
     
     /* Animations */
     --animation-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -69,26 +69,26 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 215 28% 8%;
+    --foreground: 214 32% 91%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 215 28% 10%;
+    --card-foreground: 214 32% 91%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 215 28% 10%;
+    --popover-foreground: 214 32% 91%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 214 95% 55%;
+    --primary-foreground: 215 28% 8%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 215 28% 15%;
+    --secondary-foreground: 214 32% 91%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 215 28% 15%;
+    --muted-foreground: 214 20% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 210 100% 55%;
+    --accent-foreground: 215 28% 8%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
