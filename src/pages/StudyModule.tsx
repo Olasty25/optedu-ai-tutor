@@ -4,6 +4,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { FlashcardsPopout } from "@/components/ui/flashcards-popout";
+import { SummaryPopout } from "@/components/ui/summary-popout";
+import { ReviewPopout } from "@/components/ui/review-popout";
 import { 
   BookOpen, 
   ArrowLeft, 
@@ -12,7 +15,8 @@ import {
   FileText, 
   RotateCcw,
   Bot,
-  User
+  User,
+  X
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { useState } from "react";
@@ -22,6 +26,27 @@ interface Message {
   type: "user" | "ai";
   content: string;
   timestamp: Date;
+}
+
+interface Flashcard {
+  id: string;
+  front: string;
+  back: string;
+}
+
+interface Question {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation: string;
+}
+
+interface GeneratedContent {
+  id: string;
+  type: "flashcards" | "summary" | "review";
+  title: string;
+  data: Flashcard[] | string | Question[];
 }
 
 const StudyModule = () => {
@@ -36,6 +61,8 @@ const StudyModule = () => {
       timestamp: new Date()
     }
   ]);
+  const [generatedContent, setGeneratedContent] = useState<GeneratedContent[]>([]);
+  const [activePopout, setActivePopout] = useState<string | null>(null);
 
   const studyModes = [
     { id: "self", label: "Self-study mode", active: activeMode === "self" },
@@ -87,18 +114,108 @@ const StudyModule = () => {
 
     setTimeout(() => {
       let response = "";
+      let newContent: GeneratedContent | null = null;
+      
       switch (action) {
         case "flashcards":
-          response = "I've created 5 flashcards covering key OOP concepts: Classes, Objects, Inheritance, Encapsulation, and Polymorphism. Would you like to start reviewing them?";
+          const flashcards: Flashcard[] = [
+            { id: "1", front: "What is a class in Python?", back: "A class is a blueprint or template for creating objects. It defines attributes and methods that objects of the class will have." },
+            { id: "2", front: "What is an object?", back: "An object is an instance of a class. It contains data (attributes) and functions (methods) defined by its class." },
+            { id: "3", front: "What is inheritance?", back: "Inheritance allows a class to inherit attributes and methods from another class, promoting code reuse." },
+            { id: "4", front: "What is encapsulation?", back: "Encapsulation is the bundling of data and methods within a class, restricting direct access to some components." },
+            { id: "5", front: "What is polymorphism?", back: "Polymorphism allows objects of different classes to be treated as objects of a common base class." }
+          ];
+          newContent = {
+            id: Date.now().toString(),
+            type: "flashcards",
+            title: "Python OOP Flashcards",
+            data: flashcards
+          };
+          response = "I've created 5 flashcards covering key OOP concepts. Click the flashcard tile above to start reviewing!";
           break;
         case "summary":
-          response = "Here's a comprehensive summary of Python OOP fundamentals: Classes serve as blueprints for objects, objects are instances of classes, inheritance allows code reuse...";
+          const summary = `Python Object-Oriented Programming (OOP) is a programming paradigm that organizes code into classes and objects.
+
+Key Concepts:
+
+Classes: Blueprints that define the structure and behavior of objects. They contain attributes (data) and methods (functions).
+
+Objects: Instances of classes that represent specific entities with their own data and behavior.
+
+Inheritance: Allows new classes to inherit properties and methods from existing classes, promoting code reuse and establishing relationships between classes.
+
+Encapsulation: The practice of bundling data and methods together within a class while controlling access to internal components using private and public modifiers.
+
+Polymorphism: The ability for objects of different classes to respond to the same method calls in their own way, enabling flexible and extensible code.
+
+Benefits of OOP:
+- Code reusability through inheritance
+- Better organization and structure
+- Easier maintenance and debugging
+- Encapsulation provides security and data integrity
+- Polymorphism enables flexible interfaces`;
+          
+          newContent = {
+            id: Date.now().toString(),
+            type: "summary",
+            title: "Python OOP Summary",
+            data: summary
+          };
+          response = "I've created a comprehensive summary of Python OOP fundamentals. Click the summary tile above to read it!";
           break;
         case "review":
-          response = "Let's do a quick review! I'll ask you 3 questions about what we've covered. Ready? Question 1: What is the difference between a class and an object?";
+          const questions: Question[] = [
+            {
+              id: "1",
+              question: "What is the main difference between a class and an object?",
+              options: [
+                "There is no difference",
+                "A class is a blueprint, an object is an instance",
+                "A class is an instance, an object is a blueprint",
+                "Classes are functions, objects are variables"
+              ],
+              correctAnswer: 1,
+              explanation: "A class serves as a blueprint or template that defines the structure and behavior, while an object is a specific instance created from that class."
+            },
+            {
+              id: "2", 
+              question: "Which OOP principle allows a child class to inherit from a parent class?",
+              options: [
+                "Encapsulation",
+                "Polymorphism", 
+                "Inheritance",
+                "Abstraction"
+              ],
+              correctAnswer: 2,
+              explanation: "Inheritance is the OOP principle that allows a child class to inherit attributes and methods from a parent class."
+            },
+            {
+              id: "3",
+              question: "What does encapsulation help achieve in OOP?",
+              options: [
+                "Code reusability",
+                "Data hiding and access control",
+                "Multiple inheritance",
+                "Dynamic typing"
+              ],
+              correctAnswer: 1,
+              explanation: "Encapsulation helps achieve data hiding and access control by bundling data and methods together and restricting direct access to internal components."
+            }
+          ];
+          newContent = {
+            id: Date.now().toString(),
+            type: "review",
+            title: "Python OOP Review",
+            data: questions
+          };
+          response = "I've prepared a quick review with 3 questions about Python OOP. Click the review tile above to start!";
           break;
         default:
           response = "I'm here to help with your studies!";
+      }
+
+      if (newContent) {
+        setGeneratedContent(prev => [...prev, newContent]);
       }
 
       const aiResponse: Message = {
@@ -109,6 +226,22 @@ const StudyModule = () => {
       };
       setMessages(prev => [...prev, aiResponse]);
     }, 1500);
+  };
+
+  const removeContent = (contentId: string) => {
+    setGeneratedContent(prev => prev.filter(content => content.id !== contentId));
+  };
+
+  const openPopout = (contentId: string) => {
+    setActivePopout(contentId);
+  };
+
+  const closePopout = () => {
+    setActivePopout(null);
+  };
+
+  const getActiveContent = () => {
+    return generatedContent.find(content => content.id === activePopout);
   };
 
   return (
@@ -157,8 +290,42 @@ const StudyModule = () => {
 
         {/* Main Content */}
         <div className="flex-1 flex">
-          {/* Chat Area */}
+          {/* Chat Area */}  
           <div className="flex-1 flex flex-col">
+            {/* Generated Content Tiles */}
+            {generatedContent.length > 0 && (
+              <div className="border-b border-border bg-muted/20 p-4">
+                <div className="max-w-4xl mx-auto">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-3">Generated Content</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {generatedContent.map((content) => (
+                      <div
+                        key={content.id}
+                        className="group relative bg-white border border-border rounded-lg p-3 cursor-pointer hover:shadow-md transition-shadow"
+                        onClick={() => openPopout(content.id)}
+                      >
+                        <div className="flex items-center gap-2">
+                          {content.type === "flashcards" && <Lightbulb className="h-4 w-4 text-primary" />}
+                          {content.type === "summary" && <FileText className="h-4 w-4 text-primary" />}
+                          {content.type === "review" && <RotateCcw className="h-4 w-4 text-primary" />}
+                          <span className="text-sm font-medium">{content.title}</span>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeContent(content.id);
+                          }}
+                          className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+            
             <ScrollArea className="flex-1 p-4">
               <div className="max-w-4xl mx-auto space-y-4">
                 {messages.map((message) => (
@@ -240,6 +407,42 @@ const StudyModule = () => {
           </div>
         </div>
       </div>
+
+      {/* Popouts */}
+      {activePopout && (() => {
+        const content = getActiveContent();
+        if (!content) return null;
+
+        switch (content.type) {
+          case "flashcards":
+            return (
+              <FlashcardsPopout
+                isOpen={true}
+                onClose={closePopout}
+                flashcards={content.data as Flashcard[]}
+              />
+            );
+          case "summary":
+            return (
+              <SummaryPopout
+                isOpen={true}
+                onClose={closePopout}
+                summary={content.data as string}
+                title={content.title}
+              />
+            );
+          case "review":
+            return (
+              <ReviewPopout
+                isOpen={true}
+                onClose={closePopout}
+                questions={content.data as Question[]}
+              />
+            );
+          default:
+            return null;
+        }
+      })()}
     </div>
   );
 };
