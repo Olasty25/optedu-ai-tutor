@@ -10,24 +10,23 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Use environment variable
 const client = new OpenAI({
-  apiKey: process.env.OPEN_API_KEY   // 🔑 secure!
+  apiKey: process.env.OPENAI_API_KEY
 });
 
-// POST route for chatting with AI
 app.post("/chat", async (req, res) => {
   try {
-    const { type, message } = req.body;  // message = string od usera
-    
-    let systemPrompt = "You are a helpful tutoring assistant.";
+    const { type, message } = req.body;  // <--- tylko string, NIE tablica!
 
+    let systemPrompt = "You are a helpful AI study assistant.";
     if (type === "flashcards") {
-      systemPrompt = "Output ONLY valid JSON: an array of flashcards like [{id, front, back}].";
-    } else if (type === "summary") {
-      systemPrompt = "Output ONLY a study summary in markdown/plaintext.";
-    } else if (type === "review") {
-      systemPrompt = "Output ONLY valid JSON: an array of MCQs {id, question, options, correctAnswer, explanation}.";
+      systemPrompt = "Return ONLY JSON: an array of flashcards [{id, front, back}].";
+    }
+    if (type === "summary") {
+      systemPrompt = "Summarize the provided content as plain text.";
+    }
+    if (type === "review") {
+      systemPrompt = "Return ONLY JSON: an array of questions {id, question, options, correctAnswer, explanation}.";
     }
 
     const response = await client.chat.completions.create({
@@ -45,16 +44,7 @@ app.post("/chat", async (req, res) => {
   }
 });
 
-
-
-    res.json({
-      reply: response.choices[0].message.content
-    });
-  } catch (err) {
-    console.error("OpenAI API error:", err.message);
-    res.status(500).send("Error talking to AI");
-  }
-});
-
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`✅ Server running on http://localhost:${PORT}`));
+app.listen(PORT, () => {
+  console.log(`✅ Server running on http://localhost:${PORT}`);
+});
