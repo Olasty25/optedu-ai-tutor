@@ -14,6 +14,11 @@ export const Navigation = () => {
         </Link>
         
         <div className="flex items-center space-x-4">
+          <Link to="/pricing">
+            <Button variant="ghost" size="sm">
+              Pricing
+            </Button>
+          </Link>
           <Link to="/login">
             <Button variant="ghost" size="sm">
               <LogIn className="h-4 w-4 mr-2" />

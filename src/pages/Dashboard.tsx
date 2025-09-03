@@ -137,9 +137,11 @@ const Dashboard = () => {
 
           <div className="text-center">
             <p className="text-lg mb-4">{stats.freePlansLeft} free plans left.</p>
-            <Button variant="outline" size="lg" className="px-8">
-              Upgrade to Pro
-            </Button>
+            <Link to="/pricing">
+              <Button variant="outline" size="lg" className="px-8">
+                Upgrade to Pro
+              </Button>
+            </Link>
           </div>
         </div>
 

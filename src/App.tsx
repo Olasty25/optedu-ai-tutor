@@ -10,6 +10,7 @@ import Preferences from "./pages/Preferences";
 import Dashboard from "./pages/Dashboard";
 import GeneratePlan from "./pages/GeneratePlan";
 import StudyModule from "./pages/StudyModule";
+import Pricing from "./pages/Pricing";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/preferences" element={<Preferences />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/generate-plan" element={<GeneratePlan />} />
+          <Route path="/pricing" element={<Pricing />} />
           <Route path="/study/:id" element={<StudyModule />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
