@@ -76,158 +76,113 @@ const StudyModule = () => {
     { icon: RotateCcw, label: "Quick review", action: () => handleQuickAction("review") }
   ];
 
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!currentMessage.trim()) return;
+ const handleSendMessage = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!currentMessage.trim()) return;
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      type: "user",
-      content: currentMessage,
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    setCurrentMessage("");
-
-    // Simulate AI response
-    setTimeout(() => {
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        type: "ai",
-        content: `Great question about "${currentMessage}"! Let me explain that concept in detail. In Python OOP, this relates to fundamental principles of encapsulation and inheritance...`,
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, aiResponse]);
-    }, 1000);
+  const userMessage: Message = {
+    id: Date.now().toString(),
+    type: "user",
+    content: currentMessage,
+    timestamp: new Date()
   };
 
-  const handleQuickAction = (action: string) => {
-    const actionMessage: Message = {
-      id: Date.now().toString(),
-      type: "user", 
-      content: `Generate ${action} for this topic`,
+  setMessages(prev => [...prev, userMessage]);
+  setCurrentMessage("");
+
+  // ✅ fetch AI response
+  try {
+    const res = await fetch("http://localhost:5000/chat", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        type: "chat",     // <- tu informujemy backend że to normalne pytanie
+        message: userMessage.content
+      }),
+    });
+    const data = await res.json();
+
+    const aiResponse: Message = {
+      id: (Date.now() + 1).toString(),
+      type: "ai",
+      content: data.reply,
       timestamp: new Date()
     };
-
-    setMessages(prev => [...prev, actionMessage]);
-
-    setTimeout(() => {
-      let response = "";
-      let newContent: GeneratedContent | null = null;
-      
-      switch (action) {
-        case "flashcards":
-          const flashcards: Flashcard[] = [
-            { id: "1", front: "What is a class in Python?", back: "A class is a blueprint or template for creating objects. It defines attributes and methods that objects of the class will have." },
-            { id: "2", front: "What is an object?", back: "An object is an instance of a class. It contains data (attributes) and functions (methods) defined by its class." },
-            { id: "3", front: "What is inheritance?", back: "Inheritance allows a class to inherit attributes and methods from another class, promoting code reuse." },
-            { id: "4", front: "What is encapsulation?", back: "Encapsulation is the bundling of data and methods within a class, restricting direct access to some components." },
-            { id: "5", front: "What is polymorphism?", back: "Polymorphism allows objects of different classes to be treated as objects of a common base class." }
-          ];
-          newContent = {
-            id: Date.now().toString(),
-            type: "flashcards",
-            title: "Python OOP Flashcards",
-            data: flashcards
-          };
-          response = "I've created 5 flashcards covering key OOP concepts. Click the flashcard tile above to start reviewing!";
-          break;
-        case "summary":
-          const summary = `Python Object-Oriented Programming (OOP) is a programming paradigm that organizes code into classes and objects.
-
-Key Concepts:
-
-Classes: Blueprints that define the structure and behavior of objects. They contain attributes (data) and methods (functions).
-
-Objects: Instances of classes that represent specific entities with their own data and behavior.
-
-Inheritance: Allows new classes to inherit properties and methods from existing classes, promoting code reuse and establishing relationships between classes.
-
-Encapsulation: The practice of bundling data and methods together within a class while controlling access to internal components using private and public modifiers.
-
-Polymorphism: The ability for objects of different classes to respond to the same method calls in their own way, enabling flexible and extensible code.
-
-Benefits of OOP:
-- Code reusability through inheritance
-- Better organization and structure
-- Easier maintenance and debugging
-- Encapsulation provides security and data integrity
-- Polymorphism enables flexible interfaces`;
-          
-          newContent = {
-            id: Date.now().toString(),
-            type: "summary",
-            title: "Python OOP Summary",
-            data: summary
-          };
-          response = "I've created a comprehensive summary of Python OOP fundamentals. Click the summary tile above to read it!";
-          break;
-        case "review":
-          const questions: Question[] = [
-            {
-              id: "1",
-              question: "What is the main difference between a class and an object?",
-              options: [
-                "There is no difference",
-                "A class is a blueprint, an object is an instance",
-                "A class is an instance, an object is a blueprint",
-                "Classes are functions, objects are variables"
-              ],
-              correctAnswer: 1,
-              explanation: "A class serves as a blueprint or template that defines the structure and behavior, while an object is a specific instance created from that class."
-            },
-            {
-              id: "2", 
-              question: "Which OOP principle allows a child class to inherit from a parent class?",
-              options: [
-                "Encapsulation",
-                "Polymorphism", 
-                "Inheritance",
-                "Abstraction"
-              ],
-              correctAnswer: 2,
-              explanation: "Inheritance is the OOP principle that allows a child class to inherit attributes and methods from a parent class."
-            },
-            {
-              id: "3",
-              question: "What does encapsulation help achieve in OOP?",
-              options: [
-                "Code reusability",
-                "Data hiding and access control",
-                "Multiple inheritance",
-                "Dynamic typing"
-              ],
-              correctAnswer: 1,
-              explanation: "Encapsulation helps achieve data hiding and access control by bundling data and methods together and restricting direct access to internal components."
-            }
-          ];
-          newContent = {
-            id: Date.now().toString(),
-            type: "review",
-            title: "Python OOP Review",
-            data: questions
-          };
-          response = "I've prepared a quick review with 3 questions about Python OOP. Click the review tile above to start!";
-          break;
-        default:
-          response = "I'm here to help with your studies!";
-      }
-
-      if (newContent) {
-        setGeneratedContent(prev => [...prev, newContent]);
-      }
-
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        type: "ai",
-        content: response,
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, aiResponse]);
-    }, 1500);
+    setMessages(prev => [...prev, aiResponse]);
+  } catch (err) {
+    console.error(err);
+  }
+};
+  //------------------------------------------------------------------------------------
+  const handleQuickAction = async (action: "flashcards"|"summary"|"review") => {
+  const actionMessage: Message = {
+    id: Date.now().toString(),
+    type: "user", 
+    content: `Generate ${action} for this topic`,
+    timestamp: new Date()
   };
 
+  setMessages(prev => [...prev, actionMessage]);
+
+  try {
+    const res = await fetch("http://localhost:5000/chat", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({
+        type: action,        // <-- backend wie teraz, jaki prompt nałożyć
+        message: actionMessage.content
+      }),
+    });
+
+    const data = await res.json();
+
+    // Teraz parse'ujemy w zależności od akcji:
+    let newContent: GeneratedContent | null = null;
+
+    switch (action) {
+      case "flashcards":
+        newContent = {
+          id: Date.now().toString(),
+          type: "flashcards",
+          title: "Generated Flashcards",
+          data: JSON.parse(data.reply)    // reply powinno być JSON Array z backendu
+        };
+        break;
+      case "summary":
+        newContent = {
+          id: Date.now().toString(),
+          type: "summary",
+          title: "Generated Summary",
+          data: data.reply                // tekst
+        };
+        break;
+      case "review":
+        newContent = {
+          id: Date.now().toString(),
+          type: "review",
+          title: "Generated Quick Review",
+          data: JSON.parse(data.reply)    // powinien być JSON array z pytaniami
+        };
+        break;
+    }
+
+    if (newContent) {
+      setGeneratedContent(prev => [...prev, newContent]);
+    }
+
+    const aiResponse: Message = {
+      id: (Date.now() + 1).toString(),
+      type: "ai",
+      content: `I've created a ${action} for you!`,
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, aiResponse]);
+
+  } catch (err) {
+    console.error("Quick action error:", err);
+  }
+};
+//------------------------------------------------------------------------------------------
   const removeContent = (contentId: string) => {
     setGeneratedContent(prev => prev.filter(content => content.id !== contentId));
   };
