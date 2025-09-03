@@ -18,15 +18,34 @@ const client = new OpenAI({
 // POST route for chatting with AI
 app.post("/chat", async (req, res) => {
   try {
-    const { messages } = req.body; // expects array of {role, content}
+    const { type, message } = req.body;  // message = string od usera
+    
+    let systemPrompt = "You are a helpful tutoring assistant.";
+
+    if (type === "flashcards") {
+      systemPrompt = "Output ONLY valid JSON: an array of flashcards like [{id, front, back}].";
+    } else if (type === "summary") {
+      systemPrompt = "Output ONLY a study summary in markdown/plaintext.";
+    } else if (type === "review") {
+      systemPrompt = "Output ONLY valid JSON: an array of MCQs {id, question, options, correctAnswer, explanation}.";
+    }
 
     const response = await client.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
-        { role: "system", content: "You are a helpful tutoring assistant." },
-        ...messages
-      ],
+        { role: "system", content: systemPrompt },
+        { role: "user", content: message }
+      ]
     });
+
+    res.json({ reply: response.choices[0].message.content });
+  } catch (err) {
+    console.error("OpenAI API error:", err.message);
+    res.status(500).send("Error talking to AI");
+  }
+});
+
+
 
     res.json({
       reply: response.choices[0].message.content
