@@ -3,7 +3,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, ArrowLeft, Wand2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FileUploadPopout } from "@/components/ui/file-upload-popout";
+import { BookOpen, ArrowLeft, Wand2, Upload, Settings } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
@@ -12,6 +15,14 @@ const GeneratePlan = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [useOwnSources, setUseOwnSources] = useState(false);
+  const [customizeStructure, setCustomizeStructure] = useState(false);
+  const [showFileUpload, setShowFileUpload] = useState(false);
+  
+  // Additional customization fields
+  const [learningStyle, setLearningStyle] = useState("");
+  const [timeAvailable, setTimeAvailable] = useState("");
+  const [difficultyLevel, setDifficultyLevel] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,9 +49,16 @@ const GeneratePlan = () => {
     }
   };
 
-  const handleUseOwnSources = () => {
-    // In real app, would open file upload dialog
-    console.log("Use own sources clicked");
+  const handleFileUpload = (files: FileList | null) => {
+    if (files) {
+      console.log("Files uploaded:", Array.from(files).map(f => f.name));
+      // In real app, would process uploaded files
+    }
+  };
+
+  const handleLinkSubmit = (link: string) => {
+    console.log("Link submitted:", link);
+    // In real app, would process the link
   };
 
   return (
@@ -104,31 +122,112 @@ const GeneratePlan = () => {
                   />
                 </div>
                 
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <Button 
-                    type="button"
-                    variant="outline" 
-                    onClick={handleUseOwnSources}
-                    className="flex-1"
-                  >
-                    Use your own sources
-                  </Button>
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between p-4 border border-border rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <Upload className="h-5 w-5 text-primary" />
+                      <div>
+                        <p className="font-medium">Use your own sources</p>
+                        <p className="text-sm text-muted-foreground">Upload PDFs or paste links to customize content</p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={useOwnSources}
+                      onCheckedChange={(checked) => {
+                        setUseOwnSources(checked);
+                        if (checked) {
+                          setShowFileUpload(true);
+                        }
+                      }}
+                    />
+                  </div>
                   
-                  <Button 
-                    type="submit" 
-                    className="flex-1 bg-primary hover:bg-primary/90"
-                    disabled={isGenerating}
-                  >
-                    {isGenerating ? (
-                      <>
-                        <Wand2 className="mr-2 h-4 w-4 animate-spin" />
-                        Generating...
-                      </>
-                    ) : (
-                      "Define plan structure"
-                    )}
-                  </Button>
+                  <div className="flex items-center justify-between p-4 border border-border rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <Settings className="h-5 w-5 text-primary" />
+                      <div>
+                        <p className="font-medium">Define plan structure</p>
+                        <p className="text-sm text-muted-foreground">Customize your learning path and preferences</p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={customizeStructure}
+                      onCheckedChange={setCustomizeStructure}
+                    />
+                  </div>
                 </div>
+                
+                {customizeStructure && (
+                  <div className="space-y-4 p-4 bg-accent/20 rounded-lg border border-primary/20">
+                    <h3 className="font-semibold text-primary">Personalize Your Learning Path</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="learning-style" className="text-sm font-medium">Learning Style</Label>
+                        <Select value={learningStyle} onValueChange={setLearningStyle}>
+                          <SelectTrigger className="mt-2">
+                            <SelectValue placeholder="Select your learning style" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="visual">Visual Learner</SelectItem>
+                            <SelectItem value="auditory">Auditory Learner</SelectItem>
+                            <SelectItem value="kinesthetic">Kinesthetic Learner</SelectItem>
+                            <SelectItem value="reading">Reading/Writing Learner</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="time-available" className="text-sm font-medium">Time Available</Label>
+                        <Select value={timeAvailable} onValueChange={setTimeAvailable}>
+                          <SelectTrigger className="mt-2">
+                            <SelectValue placeholder="How much time do you have?" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="30min">30 minutes/day</SelectItem>
+                            <SelectItem value="1hour">1 hour/day</SelectItem>
+                            <SelectItem value="2hours">2 hours/day</SelectItem>
+                            <SelectItem value="flexible">Flexible schedule</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      <div className="md:col-span-2">
+                        <Label htmlFor="difficulty-level" className="text-sm font-medium">Difficulty Level</Label>
+                        <Select value={difficultyLevel} onValueChange={setDifficultyLevel}>
+                          <SelectTrigger className="mt-2">
+                            <SelectValue placeholder="Select difficulty level" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="beginner">Beginner</SelectItem>
+                            <SelectItem value="intermediate">Intermediate</SelectItem>
+                            <SelectItem value="advanced">Advanced</SelectItem>
+                            <SelectItem value="expert">Expert</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                <Button 
+                  type="submit" 
+                  className="w-full bg-primary hover:bg-primary/90"
+                  disabled={isGenerating}
+                  size="lg"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Wand2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating Plan...
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="mr-2 h-4 w-4" />
+                      Generate Plan
+                    </>
+                  )}
+                </Button>
               </form>
             </CardContent>
           </Card>
@@ -150,6 +249,13 @@ const GeneratePlan = () => {
           )}
         </div>
       </div>
+      
+      <FileUploadPopout
+        isOpen={showFileUpload}
+        onClose={() => setShowFileUpload(false)}
+        onFileUpload={handleFileUpload}
+        onLinkSubmit={handleLinkSubmit}
+      />
     </div>
   );
 };
