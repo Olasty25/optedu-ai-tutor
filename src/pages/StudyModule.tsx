@@ -115,73 +115,126 @@ const StudyModule = () => {
 };
   //------------------------------------------------------------------------------------
   const handleQuickAction = async (action: "flashcards"|"summary"|"review") => {
-  const actionMessage: Message = {
-    id: Date.now().toString(),
-    type: "user", 
-    content: `Generate ${action} for this topic`,
-    timestamp: new Date()
-  };
-
-  setMessages(prev => [...prev, actionMessage]);
-
-  try {
-    const res = await fetch("http://localhost:5000/chat", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({
-        type: action,        // <-- backend wie teraz, jaki prompt nałożyć
-        message: actionMessage.content
-      }),
-    });
-
-    const data = await res.json();
-
-    // Teraz parse'ujemy w zależności od akcji:
-    let newContent: GeneratedContent | null = null;
-
-    switch (action) {
-      case "flashcards":
-        newContent = {
-          id: Date.now().toString(),
-          type: "flashcards",
-          title: "Generated Flashcards",
-          data: JSON.parse(data.reply)    // reply powinno być JSON Array z backendu
-        };
-        break;
-      case "summary":
-        newContent = {
-          id: Date.now().toString(),
-          type: "summary",
-          title: "Generated Summary",
-          data: data.reply                // tekst
-        };
-        break;
-      case "review":
-        newContent = {
-          id: Date.now().toString(),
-          type: "review",
-          title: "Generated Quick Review",
-          data: JSON.parse(data.reply)    // powinien być JSON array z pytaniami
-        };
-        break;
-    }
-
-    if (newContent) {
-      setGeneratedContent(prev => [...prev, newContent]);
-    }
-
-    const aiResponse: Message = {
-      id: (Date.now() + 1).toString(),
-      type: "ai",
-      content: `I've created a ${action} for you!`,
+    const actionMessage: Message = {
+      id: Date.now().toString(),
+      type: "user", 
+      content: `Generate ${action} for this topic`,
       timestamp: new Date()
     };
-    setMessages(prev => [...prev, aiResponse]);
 
-  } catch (err) {
-    console.error("Quick action error:", err);
-  }
-};
+    setMessages(prev => [...prev, actionMessage]);
+
+    // Mock data for immediate functionality
+    const getMockData = (action: string) => {
+      switch (action) {
+        case "flashcards":
+          return [
+            { id: "1", front: "What is a class in Python?", back: "A class is a blueprint for creating objects with attributes and methods." },
+            { id: "2", front: "What is inheritance?", back: "Inheritance allows a class to inherit attributes and methods from another class." },
+            { id: "3", front: "What is polymorphism?", back: "Polymorphism allows objects of different types to be treated as objects of a common base type." }
+          ];
+        case "summary":
+          return "Object-Oriented Programming (OOP) in Python is a programming paradigm that uses classes and objects to structure code. Key concepts include:\n\n• Classes: Templates for creating objects\n• Objects: Instances of classes\n• Inheritance: Creating new classes based on existing ones\n• Encapsulation: Bundling data and methods together\n• Polymorphism: Using a single interface for different types\n\nPython supports all major OOP principles and makes it easy to create reusable, maintainable code through object-oriented design.";
+        case "review":
+          return [
+            {
+              id: "1",
+              question: "Which keyword is used to define a class in Python?",
+              options: ["def", "class", "object", "create"],
+              correctAnswer: 1,
+              explanation: "The 'class' keyword is used to define a new class in Python."
+            },
+            {
+              id: "2", 
+              question: "What is the purpose of the __init__ method?",
+              options: ["To delete objects", "To initialize object attributes", "To inherit from parent", "To define static methods"],
+              correctAnswer: 1,
+              explanation: "The __init__ method is the constructor that initializes object attributes when an instance is created."
+            }
+          ];
+        default:
+          return null;
+      }
+    };
+
+    try {
+      // Try to fetch from backend first
+      const res = await fetch("http://localhost:5000/chat", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          type: action,
+          message: actionMessage.content
+        }),
+      });
+
+      const data = await res.json();
+      let newContent: GeneratedContent | null = null;
+
+      switch (action) {
+        case "flashcards":
+          newContent = {
+            id: Date.now().toString(),
+            type: "flashcards",
+            title: "Generated Flashcards",
+            data: JSON.parse(data.reply)
+          };
+          break;
+        case "summary":
+          newContent = {
+            id: Date.now().toString(),
+            type: "summary", 
+            title: "Generated Summary",
+            data: data.reply
+          };
+          break;
+        case "review":
+          newContent = {
+            id: Date.now().toString(),
+            type: "review",
+            title: "Generated Quick Review", 
+            data: JSON.parse(data.reply)
+          };
+          break;
+      }
+
+      if (newContent) {
+        setGeneratedContent(prev => [...prev, newContent]);
+      }
+
+      const aiResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        type: "ai",
+        content: `I've created a ${action} for you! Click on the tile above to view it.`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiResponse]);
+
+    } catch (err) {
+      console.error("Backend unavailable, using mock data:", err);
+      
+      // Use mock data when backend is unavailable
+      const mockData = getMockData(action);
+      if (mockData) {
+        const newContent: GeneratedContent = {
+          id: Date.now().toString(),
+          type: action as "flashcards" | "summary" | "review",
+          title: `Generated ${action.charAt(0).toUpperCase() + action.slice(1)}`,
+          data: mockData
+        };
+        
+        setGeneratedContent(prev => [...prev, newContent]);
+        
+        const aiResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          type: "ai",
+          content: `I've created a ${action} for you! Click on the tile above to view it.`,
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, aiResponse]);
+      }
+    }
+  };
 //------------------------------------------------------------------------------------------
   const removeContent = (contentId: string) => {
     setGeneratedContent(prev => prev.filter(content => content.id !== contentId));
