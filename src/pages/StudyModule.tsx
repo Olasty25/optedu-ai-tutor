@@ -92,25 +92,38 @@ const StudyModule = () => {
 
   // ✅ fetch AI response
   try {
-    const res = await fetch("http://localhost:5000/chat", {
+    // Wysyłamy zapytanie do naszego backendu /api/chat
+    const res = await fetch("/api/chat", {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        type: "chat",     // <- tu informujemy backend że to normalne pytanie
-        message: userMessage.content
+        type: "chat", // Informujemy backend, że to zwykła rozmowa
+        message: userMessage.content,
       }),
     });
+
     const data = await res.json();
+    if (res.status !== 200) {
+        throw new Error(data.error || "Something went wrong");
+    }
 
     const aiResponse: Message = {
       id: (Date.now() + 1).toString(),
       type: "ai",
       content: data.reply,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
-    setMessages(prev => [...prev, aiResponse]);
+    setMessages((prev) => [...prev, aiResponse]);
   } catch (err) {
-    console.error(err);
+    console.error("Chat error:", err);
+    // Możesz tu dodać wiadomość o błędzie dla użytkownika
+    const errorResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        type: "ai",
+        content: "Sorry, I couldn't get a response. Please try again.",
+        timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, errorResponse]);
   }
 };
   //------------------------------------------------------------------------------------
@@ -158,81 +171,106 @@ const StudyModule = () => {
     };
 
     try {
-      // Try to fetch from backend first
-      const res = await fetch("http://localhost:5000/chat", {
+    // Wysyłamy zapytanie do naszego backendu /api/chat
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: "chat", // Informujemy backend, że to zwykła rozmowa
+        message: userMessage.content,
+      }),
+    });
+
+    const data = await res.json();
+    if (res.status !== 200) {
+        throw new Error(data.error || "Something went wrong");
+    }
+
+    const aiResponse: Message = {
+      id: (Date.now() + 1).toString(),
+      type: "ai",
+      content: data.reply,
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, aiResponse]);
+  } catch (err) {
+    console.error("Chat error:", err);
+    // Możesz tu dodać wiadomość o błędzie dla użytkownika
+    const errorResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        type: "ai",
+        content: "Sorry, I couldn't get a response. Please try again.",
+        timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, errorResponse]);
+  }
+};
+
+// Funkcja do obsługi przycisków "Quick Actions"
+const handleQuickAction = async (action: "flashcards" | "summary" | "review") => {
+  // Używamy ostatniej wiadomości jako kontekstu dla generowania
+  const lastMessage = messages[messages.length - 1]?.content || "the current topic";
+  const actionMessageText = `Generate ${action} based on: "${lastMessage}"`;
+  
+  const userActionMessage: Message = {
+      id: Date.now().toString(),
+      type: "user",
+      content: actionMessageText,
+      timestamp: new Date()
+  };
+  setMessages(prev => [...prev, userActionMessage]);
+
+    try {
+      // Wysyłamy zapytanie do naszego backendu /api/chat
+      const res = await fetch("/api/chat", {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          type: action,
-          message: actionMessage.content
+          type: action, // Informujemy backend, co ma wygenerować
+          message: lastMessage,
         }),
       });
-
+  
       const data = await res.json();
+      if (res.status !== 200) {
+          throw new Error(data.error || "Something went wrong");
+      }
+  
       let newContent: GeneratedContent | null = null;
-
-      switch (action) {
-        case "flashcards":
-          newContent = {
-            id: Date.now().toString(),
-            type: "flashcards",
-            title: "Generated Flashcards",
-            data: JSON.parse(data.reply)
-          };
-          break;
-        case "summary":
-          newContent = {
-            id: Date.now().toString(),
-            type: "summary", 
-            title: "Generated Summary",
-            data: data.reply
-          };
-          break;
-        case "review":
-          newContent = {
-            id: Date.now().toString(),
-            type: "review",
-            title: "Generated Quick Review", 
-            data: JSON.parse(data.reply)
-          };
-          break;
+      let aiConfirmationMessage = `I've created a ${action} for you! Click the tile above to see it.`;
+  
+      try {
+          switch (action) {
+            case "flashcards":
+              newContent = { id: Date.now().toString(), type: "flashcards", title: "Generated Flashcards", data: JSON.parse(data.reply) };
+              break;
+            case "summary":
+              newContent = { id: Date.now().toString(), type: "summary", title: "Generated Summary", data: data.reply };
+              break;
+            case "review":
+              newContent = { id: Date.now().toString(), type: "review", title: "Generated Review", data: JSON.parse(data.reply) };
+              break;
+          }
+      } catch (parseError) {
+          console.error("Failed to parse AI response:", parseError);
+          aiConfirmationMessage = "I tried to generate content, but the format was incorrect. Here is the raw response: " + data.reply;
       }
-
+  
+  
       if (newContent) {
-        setGeneratedContent(prev => [...prev, newContent]);
+        setGeneratedContent((prev) => [...prev, newContent]);
       }
-
+  
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
         type: "ai",
-        content: `I've created a ${action} for you! Click on the tile above to view it.`,
-        timestamp: new Date()
+        content: aiConfirmationMessage,
+        timestamp: new Date(),
       };
-      setMessages(prev => [...prev, aiResponse]);
-
+      setMessages((prev) => [...prev, aiResponse]);
+  
     } catch (err) {
-      console.error("Backend unavailable, using mock data:", err);
-      
-      // Use mock data when backend is unavailable
-      const mockData = getMockData(action);
-      if (mockData) {
-        const newContent: GeneratedContent = {
-          id: Date.now().toString(),
-          type: action as "flashcards" | "summary" | "review",
-          title: `Generated ${action.charAt(0).toUpperCase() + action.slice(1)}`,
-          data: mockData
-        };
-        
-        setGeneratedContent(prev => [...prev, newContent]);
-        
-        const aiResponse: Message = {
-          id: (Date.now() + 1).toString(),
-          type: "ai",
-          content: `I've created a ${action} for you! Click on the tile above to view it.`,
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, aiResponse]);
-      }
+      console.error("Quick action error:", err);
     }
   };
 //------------------------------------------------------------------------------------------
