@@ -17,15 +17,17 @@ export default async function handler(req, res) {
   const { type, message } = req.body;
 
   // Ustawiamy odpowiedni "rozkaz" dla AI w zależności od typu akcji
+  let systemTutorInfo = "You are an educational assistant.";
+  
   let systemPrompt = "You are a helpful and patient AI tutor.";
   if (type === "flashcards") {
-    systemPrompt = "You are an educational assistant. Respond ONLY with a valid JSON array of flashcard objects in this format: [{id: string, front: string, back: string}]. Do not include any other text or explanations.";
+    systemPrompt = systemTutorInfo + "Respond ONLY with a valid JSON array of flashcard objects in this format: [{id: string, front: string, back: string}]. Do not include any other text or explanations.";
   }
   if (type === "summary") {
-    systemPrompt = "You are an educational assistant. Create a concise and clear summary of the provided topic. Respond only with the summary text.";
+    systemPrompt = systemTutorInfo + "Create a concise and clear summary of the provided topic. Respond only with the summary text.";
   }
   if (type === "review") {
-    systemPrompt = "You are an educational assistant. Respond ONLY with a valid JSON array of multiple-choice question objects in this format: [{id: string, question: string, options: string[], correctAnswer: number, explanation: string}]. Do not include any other text or explanations.";
+    systemPrompt = systemTutorInfo + "Respond ONLY with a valid JSON array of multiple-choice question objects in this format: [{id: string, question: string, options: string[], correctAnswer: number, explanation: string}]. Do not include any other text or explanations.";
   }
 
   try {
