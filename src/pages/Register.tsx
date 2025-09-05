@@ -5,9 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { BookOpen } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Register = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -45,15 +47,15 @@ const Register = () => {
 
         <Card className="shadow-glow border-white/10 bg-white/95 backdrop-blur-sm">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl">Create Account</CardTitle>
+            <CardTitle className="text-2xl">{t('auth.registerTitle')}</CardTitle>
             <CardDescription>
-              Join thousands of learners using AI to accelerate education
+              {t('auth.registerSubtitle')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleRegister} className="space-y-4">
               <div>
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="name">{t('common.name')}</Label>
                 <Input
                   id="name"
                   name="name"
@@ -65,7 +67,7 @@ const Register = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t('common.email')}</Label>
                 <Input
                   id="email"
                   name="email"
@@ -78,7 +80,7 @@ const Register = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">{t('common.password')}</Label>
                 <Input
                   id="password"
                   name="password"
@@ -91,7 +93,7 @@ const Register = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Label htmlFor="confirmPassword">{t('common.confirmPassword')}</Label>
                 <Input
                   id="confirmPassword"
                   name="confirmPassword"
@@ -107,15 +109,15 @@ const Register = () => {
                 type="submit" 
                 className="w-full bg-gradient-hero hover:opacity-90"
               >
-                Create Account
+                {t('auth.registerButton')}
               </Button>
             </form>
             
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
-                Already have an account?{" "}
+                {t('auth.existingUser')}{" "}
                 <Link to="/login" className="text-primary hover:underline font-medium">
-                  Sign in
+                  {t('auth.signInHere')}
                 </Link>
               </p>
             </div>

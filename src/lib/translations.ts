@@ -1,0 +1,222 @@
+export const translations = {
+  en: {
+    common: {
+      signIn: "Sign In",
+      getStarted: "Get Started",
+      pricing: "Pricing",
+      dashboard: "Dashboard",
+      preferences: "Preferences",
+      generatePlan: "Generate Plan",
+      login: "Login",
+      register: "Register",
+      email: "Email",
+      password: "Password",
+      confirmPassword: "Confirm Password",
+      name: "Name",
+      continue: "Continue",
+      back: "Back",
+      save: "Save",
+      cancel: "Cancel",
+      loading: "Loading...",
+      error: "Error",
+      success: "Success"
+    },
+    landing: {
+      heroTitle: "We are unleashing a",
+      heroHighlight: "new way of learning",
+      heroSubtitle: "AI-powered personalized education that adapts to your learning style and pace",
+      tryButton: "Try Optedu AI",
+      featuresTitle: "Powerful Learning Features",
+      featuresSubtitle: "Everything you need for effective AI-powered education",
+      feature1Title: "Generate a personalized course",
+      feature1Description: "Get custom study flows tailored to your needs with AI-generated learning paths that adapt to your progress.",
+      feature2Title: "Study with AI-prepared prompts",
+      feature2Description: "Learn with guided prompts and structured lessons designed by AI to maximize your learning efficiency.",
+      feature3Title: "Get notified to stay motivated",
+      feature3Description: "Never lose your learning rhythm with timely reminders and progress tracking to keep you engaged.",
+      innovationTitle: "Why Optedu AI is innovative",
+      innovation1Title: "Adaptive Learning",
+      innovation1Description: "Optedu AI adjusts dynamically to each student's pace and level, ensuring fully personalized learning experiences.",
+      innovation2Title: "Smart Integration",
+      innovation2Description: "It merges diverse sources — books, notes, and digital content — into clear, structured study flows.",
+      innovation3Title: "Motivation Engine",
+      innovation3Description: "Stay engaged with reminders, real-time feedback, and progress tracking to keep your learning on track.",
+      ctaTitle: "Ready to transform your learning?",
+      ctaSubtitle: "Join thousands of students already using AI to accelerate their education",
+      ctaButton: "Start Learning Today",
+      footerText: "© 2026 by Optedu AI | Privacy Policy"
+    },
+    auth: {
+      loginTitle: "Welcome back",
+      loginSubtitle: "Sign in to your account to continue learning",
+      registerTitle: "Create your account",
+      registerSubtitle: "Join thousands of students already learning with AI",
+      loginButton: "Sign In",
+      registerButton: "Create Account",
+      newUser: "New user?",
+      existingUser: "Already have an account?",
+      createAccount: "Create an account",
+      signInHere: "Sign in here"
+    },
+    preferences: {
+      setupTitle: "Let's personalize your learning experience!",
+      setupDescription: "Setting up your preferences will help us create the most effective learning plan tailored specifically for you. This takes just 2 minutes and will significantly improve your learning outcomes.",
+      setupButton: "Let's Set Up Preferences",
+      skipButton: "Skip for Now",
+      personalInfoTitle: "Personal Information",
+      learningStyleTitle: "Learning Style",
+      learningGoalsTitle: "Learning Goals",
+      availabilityTitle: "Time Availability",
+      educationLevel: "What is your current education level?",
+      educationOptions: {
+        highSchool: "High School",
+        bachelor: "Bachelor's Degree",
+        master: "Master's Degree",
+        phd: "PhD",
+        professional: "Professional/Working"
+      },
+      learningOutcomes: "What do you want to achieve with your learning?",
+      outcomeOptions: {
+        examPrep: "Exam Preparation",
+        skillDevelopment: "Skill Development",
+        careerAdvancement: "Career Advancement",
+        personalInterest: "Personal Interest",
+        academicResearch: "Academic Research"
+      },
+      learningPreferences: "How do you prefer to learn?",
+      preferenceOptions: {
+        visual: "Visual (diagrams, charts, videos)",
+        auditory: "Auditory (podcasts, discussions)",
+        reading: "Reading/Writing (texts, notes)",
+        kinesthetic: "Hands-on (practice, experiments)"
+      },
+      challenges: "What challenges do you face in learning?",
+      challengeOptions: {
+        timeManagement: "Time Management",
+        motivation: "Staying Motivated",
+        complexity: "Understanding Complex Topics",
+        retention: "Information Retention",
+        focus: "Maintaining Focus"
+      },
+      ageGroup: "Age Group",
+      subject: "Primary Subject of Interest",
+      difficultyLevel: "Preferred Difficulty Level",
+      studyTime: "Daily Study Time Available"
+    },
+    languageSelector: {
+      selectLanguage: "Select Language",
+      english: "English",
+      polish: "Polish"
+    }
+  },
+  pl: {
+    common: {
+      signIn: "Zaloguj się",
+      getStarted: "Rozpocznij",
+      pricing: "Cennik",
+      dashboard: "Panel",
+      preferences: "Preferencje",
+      generatePlan: "Generuj Plan",
+      login: "Logowanie",
+      register: "Rejestracja",
+      email: "Email",
+      password: "Hasło",
+      confirmPassword: "Potwierdź hasło",
+      name: "Imię",
+      continue: "Kontynuuj",
+      back: "Powrót",
+      save: "Zapisz",
+      cancel: "Anuluj",
+      loading: "Ładowanie...",
+      error: "Błąd",
+      success: "Sukces"
+    },
+    landing: {
+      heroTitle: "Otwieramy",
+      heroHighlight: "nowy sposób nauki",
+      heroSubtitle: "Personalizowana edukacja oparta na AI, która dostosowuje się do Twojego stylu i tempa nauki",
+      tryButton: "Wypróbuj Optedu AI",
+      featuresTitle: "Potężne funkcje nauki",
+      featuresSubtitle: "Wszystko czego potrzebujesz do efektywnej edukacji opartej na AI",
+      feature1Title: "Generuj spersonalizowany kurs",
+      feature1Description: "Otrzymaj niestandardowe ścieżki nauki dostosowane do Twoich potrzeb z ścieżkami uczenia generowanymi przez AI, które dostosowują się do Twojego postępu.",
+      feature2Title: "Ucz się z podpowiedziami przygotowanymi przez AI",
+      feature2Description: "Ucz się z ukierunkowanymi podpowiedziami i ustrukturyzowanymi lekcjami zaprojektowanymi przez AI, aby zmaksymalizować Twoją efektywność nauki.",
+      feature3Title: "Otrzymuj powiadomienia, aby zachować motywację",
+      feature3Description: "Nigdy nie trać rytmu nauki dzięki terminowym przypomnieniom i śledzeniu postępów, które utrzymają Cię w zaangażowaniu.",
+      innovationTitle: "Dlaczego Optedu AI jest innowacyjne",
+      innovation1Title: "Adaptacyjna nauka",
+      innovation1Description: "Optedu AI dostosowuje się dynamicznie do tempa i poziomu każdego ucznia, zapewniając w pełni spersonalizowane doświadczenia nauki.",
+      innovation2Title: "Inteligentna integracja",
+      innovation2Description: "Łączy różnorodne źródła — książki, notatki i treści cyfrowe — w przejrzyste, ustrukturyzowane ścieżki nauki.",
+      innovation3Title: "Silnik motywacji",
+      innovation3Description: "Pozostań zaangażowany dzięki przypomnieniom, informacjom zwrotnym w czasie rzeczywistym i śledzeniu postępów, aby utrzymać naukę na właściwym torze.",
+      ctaTitle: "Gotowy na transformację swojej nauki?",
+      ctaSubtitle: "Dołącz do tysięcy uczniów już używających AI do przyspieszenia swojej edukacji",
+      ctaButton: "Rozpocznij naukę już dziś",
+      footerText: "© 2026 by Optedu AI | Polityka prywatności"
+    },
+    auth: {
+      loginTitle: "Witaj ponownie",
+      loginSubtitle: "Zaloguj się do swojego konta, aby kontynuować naukę",
+      registerTitle: "Utwórz swoje konto",
+      registerSubtitle: "Dołącz do tysięcy uczniów już uczących się z AI",
+      loginButton: "Zaloguj się",
+      registerButton: "Utwórz konto",
+      newUser: "Nowy użytkownik?",
+      existingUser: "Masz już konto?",
+      createAccount: "Utwórz konto",
+      signInHere: "Zaloguj się tutaj"
+    },
+    preferences: {
+      setupTitle: "Spersonalizujmy Twoje doświadczenie nauki!",
+      setupDescription: "Ustawienie Twoich preferencji pomoże nam stworzyć najskuteczniejszy plan nauki dostosowany specjalnie dla Ciebie. Zajmuje to tylko 2 minuty i znacznie poprawi Twoje wyniki nauki.",
+      setupButton: "Ustawmy preferencje",
+      skipButton: "Pomiń na razie",
+      personalInfoTitle: "Informacje osobiste",
+      learningStyleTitle: "Styl nauki",
+      learningGoalsTitle: "Cele nauki",
+      availabilityTitle: "Dostępność czasowa",
+      educationLevel: "Jaki jest Twój obecny poziom wykształcenia?",
+      educationOptions: {
+        highSchool: "Szkoła średnia",
+        bachelor: "Licencjat",
+        master: "Magisterium",
+        phd: "Doktorat",
+        professional: "Zawodowy/Pracujący"
+      },
+      learningOutcomes: "Co chcesz osiągnąć poprzez naukę?",
+      outcomeOptions: {
+        examPrep: "Przygotowanie do egzaminu",
+        skillDevelopment: "Rozwój umiejętności",
+        careerAdvancement: "Rozwój kariery",
+        personalInterest: "Zainteresowania osobiste",
+        academicResearch: "Badania akademickie"
+      },
+      learningPreferences: "Jak wolisz się uczyć?",
+      preferenceOptions: {
+        visual: "Wizualne (diagramy, wykresy, filmy)",
+        auditory: "Słuchowe (podcasty, dyskusje)",
+        reading: "Czytanie/Pisanie (teksty, notatki)",
+        kinesthetic: "Praktyczne (ćwiczenia, eksperymenty)"
+      },
+      challenges: "Jakie wyzwania napotykasz w nauce?",
+      challengeOptions: {
+        timeManagement: "Zarządzanie czasem",
+        motivation: "Utrzymanie motywacji",
+        complexity: "Zrozumienie złożonych tematów",
+        retention: "Zapamiętywanie informacji",
+        focus: "Utrzymanie koncentracji"
+      },
+      ageGroup: "Grupa wiekowa",
+      subject: "Główny przedmiot zainteresowania",
+      difficultyLevel: "Preferowany poziom trudności",
+      studyTime: "Dostępny czas nauki dziennie"
+    },
+    languageSelector: {
+      selectLanguage: "Wybierz język",
+      english: "Angielski",
+      polish: "Polski"
+    }
+  }
+};

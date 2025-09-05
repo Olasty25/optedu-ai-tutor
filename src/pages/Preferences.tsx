@@ -7,9 +7,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { BookOpen, User } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Preferences = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [showDialog, setShowDialog] = useState(true);
   const [age, setAge] = useState("");
   const [interests, setInterests] = useState("");
@@ -51,25 +53,25 @@ const Preferences = () => {
       <Dialog open={showDialog} onOpenChange={() => {}}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-center">Setup Your Learning Preferences</DialogTitle>
+            <DialogTitle className="text-center">{t('preferences.setupTitle')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-center text-muted-foreground">
-              Would you like to set up your preferences to optimize your learning plan? This will help us create a more personalized experience for you.
+              {t('preferences.setupDescription')}
             </p>
             <div className="flex gap-3">
               <Button 
                 onClick={() => handleDialogResponse(true)}
                 className="flex-1"
               >
-                Yes, Set Up
+                {t('preferences.setupButton')}
               </Button>
               <Button 
                 variant="outline"
                 onClick={() => handleDialogResponse(false)}
                 className="flex-1"
               >
-                Skip for Now
+                {t('preferences.skipButton')}
               </Button>
             </div>
           </div>
@@ -91,7 +93,7 @@ const Preferences = () => {
               <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-accent flex items-center justify-center">
                 <User className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="text-2xl">Preferences</CardTitle>
+              <CardTitle className="text-2xl">{t('common.preferences')}</CardTitle>
             </CardHeader>
             <CardContent className="max-h-[70vh] overflow-y-auto">
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -120,92 +122,64 @@ const Preferences = () => {
                 </div>
 
                 <div>
-                  <Label className="text-base font-medium">What level of education are you?</Label>
+                  <Label className="text-base font-medium">{t('preferences.educationLevel')}</Label>
                   <div className="mt-3 grid grid-cols-2 gap-3">
-                    {[
-                      "Primary School",
-                      "Secondary School", 
-                      "High School",
-                      "Studies",
-                      "Im Working"
-                    ].map(level => (
-                      <div key={level} className="flex items-center space-x-2">
+                    {Object.entries(t('preferences.educationOptions')).map(([key, value]) => (
+                      <div key={key} className="flex items-center space-x-2">
                         <Checkbox
-                          id={level}
-                          checked={educationLevel.includes(level)}
-                          onCheckedChange={() => handleCheckboxChange(level, setEducationLevel)}
+                          id={key}
+                          checked={educationLevel.includes(key)}
+                          onCheckedChange={() => handleCheckboxChange(key, setEducationLevel)}
                         />
-                        <Label htmlFor={level} className="text-sm">{level}</Label>
+                        <Label htmlFor={key} className="text-sm">{value}</Label>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 <div>
-                  <Label className="text-base font-medium">What learning outcomes do you overall expect?</Label>
+                  <Label className="text-base font-medium">{t('preferences.learningOutcomes')}</Label>
                   <div className="mt-3 grid grid-cols-1 gap-3">
-                    {[
-                      "Be prepared for tests",
-                      "Utilize this knowledge",
-                      "Just to keep up with school topics",
-                      "Change my job",
-                      "Advance in my current career"
-                    ].map(outcome => (
-                      <div key={outcome} className="flex items-center space-x-2">
+                    {Object.entries(t('preferences.outcomeOptions')).map(([key, value]) => (
+                      <div key={key} className="flex items-center space-x-2">
                         <Checkbox
-                          id={outcome}
-                          checked={learningOutcomes.includes(outcome)}
-                          onCheckedChange={() => handleCheckboxChange(outcome, setLearningOutcomes)}
+                          id={key}
+                          checked={learningOutcomes.includes(key)}
+                          onCheckedChange={() => handleCheckboxChange(key, setLearningOutcomes)}
                         />
-                        <Label htmlFor={outcome} className="text-sm">{outcome}</Label>
+                        <Label htmlFor={key} className="text-sm">{value}</Label>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 <div>
-                  <Label className="text-base font-medium">How do you prefer to learn?</Label>
+                  <Label className="text-base font-medium">{t('preferences.learningPreferences')}</Label>
                   <div className="mt-3 grid grid-cols-1 gap-3">
-                    {[
-                      "Short, bite-sized lessons",
-                      "Practice based learning",
-                      "Step-by-step guides",
-                      "Stories and real world examples",
-                      "Visual explanations",
-                      "Explaining it to others",
-                      "Reading detailed notes",
-                      "Interactive tools"
-                    ].map(pref => (
-                      <div key={pref} className="flex items-center space-x-2">
+                    {Object.entries(t('preferences.preferenceOptions')).map(([key, value]) => (
+                      <div key={key} className="flex items-center space-x-2">
                         <Checkbox
-                          id={pref}
-                          checked={learningPreferences.includes(pref)}
-                          onCheckedChange={() => handleCheckboxChange(pref, setLearningPreferences)}
+                          id={key}
+                          checked={learningPreferences.includes(key)}
+                          onCheckedChange={() => handleCheckboxChange(key, setLearningPreferences)}
                         />
-                        <Label htmlFor={pref} className="text-sm">{pref}</Label>
+                        <Label htmlFor={key} className="text-sm">{value}</Label>
                       </div>
                     ))}
                   </div>
                 </div>
 
                 <div>
-                  <Label className="text-base font-medium">Do you think any of these below may stop you?</Label>
+                  <Label className="text-base font-medium">{t('preferences.challenges')}</Label>
                   <div className="mt-3 grid grid-cols-1 gap-3">
-                    {[
-                      "Little time",
-                      "Lack of direction",
-                      "Hardship with maintaining focus",
-                      "Understanding complex things",
-                      "Hardship with finding necessary info",
-                      "Other"
-                    ].map(challenge => (
-                      <div key={challenge} className="flex items-center space-x-2">
+                    {Object.entries(t('preferences.challengeOptions')).map(([key, value]) => (
+                      <div key={key} className="flex items-center space-x-2">
                         <Checkbox
-                          id={challenge}
-                          checked={challenges.includes(challenge)}
-                          onCheckedChange={() => handleCheckboxChange(challenge, setChallenges)}
+                          id={key}
+                          checked={challenges.includes(key)}
+                          onCheckedChange={() => handleCheckboxChange(key, setChallenges)}
                         />
-                        <Label htmlFor={challenge} className="text-sm">{challenge}</Label>
+                        <Label htmlFor={key} className="text-sm">{value}</Label>
                       </div>
                     ))}
                   </div>
@@ -215,7 +189,7 @@ const Preferences = () => {
                   type="submit" 
                   className="w-full bg-primary hover:bg-primary/90 text-white py-3"
                 >
-                  Save
+                  {t('common.save')}
                 </Button>
               </form>
             </CardContent>

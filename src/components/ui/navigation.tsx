@@ -1,8 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { BookOpen, User, LogIn } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export const Navigation = () => {
+  const { t } = useLanguage();
+  
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -16,18 +19,18 @@ export const Navigation = () => {
         <div className="flex items-center space-x-4">
           <Link to="/pricing">
             <Button variant="ghost" size="sm">
-              Pricing
+              {t('common.pricing')}
             </Button>
           </Link>
           <Link to="/login">
             <Button variant="ghost" size="sm">
               <LogIn className="h-4 w-4 mr-2" />
-              Sign In
+              {t('common.signIn')}
             </Button>
           </Link>
           <Link to="/register">
             <Button size="sm" className="bg-gradient-hero hover:opacity-90 transition-opacity">
-              Get Started
+              {t('common.getStarted')}
             </Button>
           </Link>
         </div>

@@ -5,9 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { BookOpen } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -33,15 +35,15 @@ const Login = () => {
 
         <Card className="shadow-glow border-white/10 bg-white/95 backdrop-blur-sm">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl">Sign In</CardTitle>
+            <CardTitle className="text-2xl">{t('auth.loginTitle')}</CardTitle>
             <CardDescription>
-              Enter your credentials to access your account
+              {t('auth.loginSubtitle')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
               <div>
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t('common.email')}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -53,7 +55,7 @@ const Login = () => {
                 />
               </div>
               <div>
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">{t('common.password')}</Label>
                 <Input
                   id="password"
                   type="password"
@@ -68,15 +70,15 @@ const Login = () => {
                 type="submit" 
                 className="w-full bg-gradient-hero hover:opacity-90"
               >
-                Sign In
+                {t('auth.loginButton')}
               </Button>
             </form>
             
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
-                Don't have an account?{" "}
+                {t('auth.newUser')}{" "}
                 <Link to="/register" className="text-primary hover:underline font-medium">
-                  Sign up
+                  {t('auth.createAccount')}
                 </Link>
               </p>
             </div>
