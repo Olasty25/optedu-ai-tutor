@@ -2,8 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator"; // Separator is not used in the original code, but often useful.
-import { Badge } from "@/components/ui/badge"; // Badge is not used in the original code, but often useful.
+import { Separator } from "@/components/ui/separator"; 
+import { Badge } from "@/components/ui/badge"; 
 import { FlashcardsPopout } from "@/components/ui/flashcards-popout";
 import { SummaryPopout } from "@/components/ui/summary-popout";
 import { ReviewPopout } from "@/components/ui/review-popout";
@@ -392,12 +392,13 @@ const StudyModule = () => {
                           {message.type === "user" ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
                         </div>
                         <Card
-                          className={`${
+                          className={`${ // POJEDYNCZY OTWARTY BACKTICK
                             message.type === "user" 
                               ? "bg-primary text-white border-primary" 
                               : "bg-card"
                           } ${isSelectableAiMessage ? "cursor-pointer" : ""} 
-                            ${isSelected ? "opacity-70 border-2 border-primary" : ""}`} {/* Wizualne zaciemnienie i obramowanie */}
+                            ${isSelected ? "opacity-70 border-2 border-primary" : ""}` // POJEDYNCZY ZAMYKANY BACKTICK
+                          } {/* Tutaj był dodatkowy '}' */}
                           onClick={() => isSelectableAiMessage && toggleMessageSelection(message.id)}
                         >
                           <CardContent className="p-4">
