@@ -1,4 +1,3 @@
-import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -393,14 +392,14 @@ const StudyModule = () => {
                           {message.type === "user" ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
                         </div>
                         <Card
-                          className={`
+                          className={` // TYLKO JEDEN OTWARTY BACKTICK DLA CAŁEJ WARTOŚCI
                             ${message.type === "user" 
                               ? "bg-primary text-white border-primary" 
                               : "bg-card"
                             } 
                             ${isSelectableAiMessage ? "cursor-pointer" : ""} 
                             ${isSelected ? "opacity-70 border-2 border-primary" : ""}
-                          `}
+                          `} // TYLKO JEDEN ZAMKNIĘTY BACKTICK DLA CAŁEJ WARTOŚCI
                           onClick={() => isSelectableAiMessage && toggleMessageSelection(message.id)}
                         >
                           <CardContent className="p-4">
