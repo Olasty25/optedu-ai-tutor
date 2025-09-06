@@ -57,7 +57,7 @@ const StudyModule = () => {
     {
       id: "1",
       type: "ai",
-      content: "Welcome to your Python Object-Oriented Programming study session! I'm here to help you master the concepts. What would you like to focus on today?",
+      content: "Welcome to your test study session! I'm here to help you master optimalization of learning. What would you like to focus on today?",
       timestamp: new Date()
     }
   ]);
