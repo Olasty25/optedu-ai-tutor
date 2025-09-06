@@ -116,6 +116,55 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Beta Testing Section */}
+      <section className="py-20 px-4 bg-gradient-to-br from-accent via-primary to-accent/80 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="container mx-auto text-center relative z-10">
+          <div className="max-w-3xl mx-auto">
+            <div className="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
+              <Zap className="h-4 w-4 mr-2" />
+              {t('landing.betaLabel')}
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+              {t('landing.betaTitle')}
+            </h2>
+            <p className="text-xl mb-8 text-white/90 leading-relaxed">
+              {t('landing.betaSubtitle')}
+            </p>
+            <div className="flex items-center justify-center mb-8">
+              <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-lg px-6 py-3">
+                <Users className="h-5 w-5 mr-2" />
+                <span className="font-semibold">{t('landing.betaSlots')}</span>
+              </div>
+            </div>
+            <form 
+              action="https://docs.google.com/forms/d/e/YOUR_FORM_ID/formResponse" 
+              method="POST"
+              target="_blank"
+              className="max-w-md mx-auto flex gap-3"
+            >
+              <input
+                type="email"
+                name="entry.YOUR_EMAIL_FIELD_ID"
+                placeholder={t('landing.betaEmailPlaceholder')}
+                required
+                className="flex-1 px-4 py-3 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
+              />
+              <Button 
+                type="submit"
+                size="lg"
+                className="bg-white text-primary hover:bg-white/90 font-semibold px-6"
+              >
+                {t('landing.betaJoinButton')}
+              </Button>
+            </form>
+            <p className="text-sm text-white/70 mt-4">
+              {t('landing.betaDisclaimer')}
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20 px-4 bg-gradient-hero text-white">
         <div className="container mx-auto text-center">
