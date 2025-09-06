@@ -392,13 +392,14 @@ const StudyModule = () => {
                           {message.type === "user" ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
                         </div>
                         <Card
-                          className={`${ // POJEDYNCZY OTWARTY BACKTICK
-                            message.type === "user" 
+                          className={`
+                            ${message.type === "user" 
                               ? "bg-primary text-white border-primary" 
                               : "bg-card"
-                          } ${isSelectableAiMessage ? "cursor-pointer" : ""} 
-                            ${isSelected ? "opacity-70 border-2 border-primary" : ""}` // POJEDYNCZY ZAMYKANY BACKTICK
-                          } {/* Tutaj był dodatkowy '}' */}
+                            } 
+                            ${isSelectableAiMessage ? "cursor-pointer" : ""} 
+                            ${isSelected ? "opacity-70 border-2 border-primary" : ""}
+                          `}
                           onClick={() => isSelectableAiMessage && toggleMessageSelection(message.id)}
                         >
                           <CardContent className="p-4">
