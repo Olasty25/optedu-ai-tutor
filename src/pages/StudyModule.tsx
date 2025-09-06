@@ -392,14 +392,15 @@ const StudyModule = () => {
                           {message.type === "user" ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
                         </div>
                         <Card
-                          className={` // TYLKO JEDEN OTWARTY BACKTICK DLA CAŁEJ WARTOŚCI
-                            ${message.type === "user" 
+                          // TO JEST KLUCZOWY FRAGMENT, KTÓRY POPRAWIŁEM:
+                          className={ // Pojedynczy otwierający nawias klamrowy JSX dla całej wartości propa className
+                            `${message.type === "user" 
                               ? "bg-primary text-white border-primary" 
                               : "bg-card"
                             } 
                             ${isSelectableAiMessage ? "cursor-pointer" : ""} 
-                            ${isSelected ? "opacity-70 border-2 border-primary" : ""}
-                          `} // TYLKO JEDEN ZAMKNIĘTY BACKTICK DLA CAŁEJ WARTOŚCI
+                            ${isSelected ? "opacity-70 border-2 border-primary" : ""}` // Pojedynczy zamykający backtick dla template literalu
+                          } // Pojedynczy zamykający nawias klamrowy JSX dla wartości propa className
                           onClick={() => isSelectableAiMessage && toggleMessageSelection(message.id)}
                         >
                           <CardContent className="p-4">
