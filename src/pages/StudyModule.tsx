@@ -93,7 +93,7 @@ const StudyModule = () => {
   // ✅ fetch AI response
   try {
     // Wysyłamy zapytanie do naszego backendu /api/chat
-    const res = await fetch("/api/chat", {
+    const res = await fetch("/api/chat.js", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
