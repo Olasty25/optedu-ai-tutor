@@ -5,20 +5,59 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { BookOpen } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useLanguage } from "@/contexts/LanguageContext";
+import { useLanguage } from "@/contexts/LanguageContext"; // Zakładamy, że to jest poprawna ścieżka
+
+// --- Firebase Imports ---
+import {
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+} from "firebase/auth";
+import { auth } from "../lib/firebase"; // WAŻNE: Upewnij się, że ścieżka do Twojego pliku firebase.js jest poprawna!
+// --- Koniec Firebase Imports ---
 
 const Login = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null); // Stan do wyświetlania błędów z Firebase
+  const [loading, setLoading] = useState(false); // Stan do zarządzania ładowaniem (wyłączanie przycisków itp.)
 
-  const handleLogin = (e: React.FormEvent) => {
+  // Funkcja do logowania za pomocą emaila i hasła (zastępuje handleLogin)
+  const handleEmailPasswordSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simple demo login - in real app would validate credentials
-    if (email && password) {
-      localStorage.setItem("isLoggedIn", "true");
-      navigate("/dashboard");
+    setError(null); // Wyczyść poprzednie błędy
+    setLoading(true); // Ustaw stan ładowania
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      // Firebase automatycznie zarządza sesjami użytkowników.
+      // Nie potrzebujesz już localStorage.setItem("isLoggedIn", "true");
+      navigate("/dashboard"); // Przekieruj na dashboard po pomyślnym zalogowaniu
+    } catch (err: any) { // Użyj 'any' lub bardziej szczegółowego typu błędu, jeśli znasz
+      setError(err.message); // Wyświetl komunikat błędu z Firebase
+      console.error("Login error:", err);
+    } finally {
+      setLoading(false); // Zawsze zresetuj stan ładowania
+    }
+  };
+
+  // Funkcja do logowania za pomocą Google
+  const handleGoogleSignIn = async () => {
+    setError(null); // Wyczyść poprzednie błędy
+    setLoading(true); // Ustaw stan ładowania
+    const provider = new GoogleAuthProvider(); // Utwórz instancję providera Google
+
+    try {
+      await signInWithPopup(auth, provider); // Otwórz popup Google do logowania
+      navigate("/dashboard"); // Przekieruj na dashboard po pomyślnym zalogowaniu przez Google
+    } catch (err: any) {
+      // Obsługa błędów, np. użytkownik zamknął popup lub inne problemy
+      setError(err.message);
+      console.error("Google login error:", err);
+    } finally {
+      setLoading(false); // Zawsze zresetuj stan ładowania
     }
   };
 
@@ -41,7 +80,11 @@ const Login = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
+            {error && ( // Wyświetl komunikat o błędzie, jeśli istnieje
+              <p className="text-red-500 text-sm mb-4 text-center">{error}</p>
+            )}
+
+            <form onSubmit={handleEmailPasswordSignIn} className="space-y-4">
               <div>
                 <Label htmlFor="email">{t('common.email')}</Label>
                 <Input
@@ -52,6 +95,7 @@ const Login = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   className="mt-1"
                   required
+                  disabled={loading} // Wyłącz inputy podczas ładowania
                 />
               </div>
               <div>
@@ -64,16 +108,35 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   className="mt-1"
                   required
+                  disabled={loading} // Wyłącz inputy podczas ładowania
                 />
               </div>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full bg-gradient-hero hover:opacity-90"
+                disabled={loading} // Wyłącz przycisk podczas ładowania
               >
-                {t('auth.loginButton')}
+                {loading ? "Logging in..." : t('auth.loginButton')} {/* Zmień tekst przycisku podczas ładowania */}
               </Button>
             </form>
-            
+
+            <div className="my-6 flex items-center before:flex-1 before:border-t before:border-gray-300 after:flex-1 after:border-t after:border-gray-300">
+              <p className="text-center mx-4 text-gray-500">
+                {t('common.or') || "OR"} {/* Dodaj klucz tłumaczenia lub fallback */}
+              </p>
+            </div>
+
+            <Button
+              onClick={handleGoogleSignIn}
+              variant="outline"
+              className="w-full flex items-center justify-center gap-2"
+              disabled={loading} // Wyłącz przycisk Google podczas ładowania
+            >
+              {/* Ikona Google - możesz ją pobrać lub użyć innej z biblioteki ikon */}
+              <img src="https://www.svgrepo.com/show/355037/google.svg" alt="Google logo" className="h-5 w-5" />
+              {loading ? "Signing in..." : (t('auth.signInWithGoogle') || "Sign in with Google")} {/* Dodaj klucz tłumaczenia lub fallback */}
+            </Button>
+
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
                 {t('auth.newUser')}{" "}
