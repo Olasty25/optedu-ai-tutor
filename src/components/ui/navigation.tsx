@@ -8,7 +8,7 @@ export const Navigation = () => {
   
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/20 shadow-soft">
-      <div className="container mx-auto px-4 h-18 flex items-center justify-between">
+      <div className="container mx-auto px-4 h-24 flex items-center justify-between">
         <Link to="/" className="flex items-center space-x-3 group">
           <div className="p-1 rounded-lg bg-gradient-accent group-hover:scale-110 transition-transform duration-300">
             <BookOpen className="h-7 w-7 text-white" />

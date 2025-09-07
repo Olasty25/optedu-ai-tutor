@@ -22,8 +22,8 @@ export const translations = {
       success: "Success"
     },
     landing: {
-      heroTitle: "We are unleashing a",
-      heroHighlight: "new way of learning",
+      heroTitle: "We bring a new quality",
+      heroHighlight: "of studying with AI",
       heroSubtitle: "AI-powered personalized education that adapts to your learning style and pace",
       tryButton: "Try Optedu AI",
       featuresTitle: "Powerful Learning Features",
@@ -139,8 +139,8 @@ export const translations = {
       success: "Sukces"
     },
     landing: {
-      heroTitle: "Otwieramy",
-      heroHighlight: "nowy sposób nauki",
+      heroTitle: "Otwieramy nowy",
+      heroHighlight: "sposób nauki z AI",
       heroSubtitle: "Personalizowana edukacja oparta na AI, która dostosowuje się do Twojego stylu i tempa nauki",
       tryButton: "Wypróbuj Optedu AI",
       featuresTitle: "Potężne funkcje nauki",

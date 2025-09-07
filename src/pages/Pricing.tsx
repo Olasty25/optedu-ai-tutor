@@ -2,8 +2,29 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, Check, Star, Crown } from "lucide-react";
 import { Link } from "react-router-dom";
+import { getStripe } from "@/lib/stripe";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Pricing = () => {
+  const { user } = useAuth();
+
+  const handleUpgrade = async () => {
+    // Expect a backend endpoint to create a Checkout Session and return { sessionId }
+    // Placeholder: point to your future backend route
+    const res = await fetch("/api/create-checkout-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        priceId: import.meta.env.VITE_STRIPE_PRO_PRICE_ID,
+        customerEmail: user?.email ?? undefined,
+      }),
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    const stripe = await getStripe();
+    await stripe?.redirectToCheckout({ sessionId: data.sessionId });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -114,7 +135,7 @@ const Pricing = () => {
                   <span>Priority support</span>
                 </li>
               </ul>
-              <Button className="w-full bg-gradient-hero hover:opacity-90 transition-opacity">
+              <Button className="w-full bg-gradient-hero hover:opacity-90 transition-opacity" onClick={handleUpgrade}>
                 Upgrade to Pro
               </Button>
             </CardContent>
