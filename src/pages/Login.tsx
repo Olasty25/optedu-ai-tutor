@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { BookOpen } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const Login = () => {
@@ -13,12 +15,16 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = (e: React.FormEvent) => {
+  const [error, setError] = useState<string | null>(null);
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simple demo login - in real app would validate credentials
-    if (email && password) {
-      localStorage.setItem("isLoggedIn", "true");
+    setError(null);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
       navigate("/dashboard");
+    } catch (err: any) {
+      setError(err?.message ?? "Failed to sign in");
     }
   };
 
@@ -72,6 +78,9 @@ const Login = () => {
               >
                 {t('auth.loginButton')}
               </Button>
+              {error && (
+                <p className="text-red-600 text-sm" role="alert">{error}</p>
+              )}
             </form>
             
             <div className="mt-6 text-center">

@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { BookOpen } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 const Register = () => {
@@ -17,13 +19,20 @@ const Register = () => {
     confirmPassword: ""
   });
 
-  const handleRegister = (e: React.FormEvent) => {
+  const [error, setError] = useState<string | null>(null);
+
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simple demo registration - in real app would create account
-    if (formData.email && formData.password && formData.password === formData.confirmPassword) {
-      localStorage.setItem("isLoggedIn", "true");
-      localStorage.setItem("userName", formData.name);
+    setError(null);
+    if (!formData.email || !formData.password || formData.password !== formData.confirmPassword) return;
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+      if (cred.user && formData.name) {
+        await updateProfile(cred.user, { displayName: formData.name });
+      }
       navigate("/preferences");
+    } catch (err: any) {
+      setError(err?.message ?? "Failed to register");
     }
   };
 
@@ -111,6 +120,9 @@ const Register = () => {
               >
                 {t('auth.registerButton')}
               </Button>
+              {error && (
+                <p className="text-red-600 text-sm" role="alert">{error}</p>
+              )}
             </form>
             
             <div className="mt-6 text-center">
