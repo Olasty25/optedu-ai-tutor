@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, Plus, Clock, CheckCircle, ArrowRight } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { signOut } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
 interface StudyPlan {
   id: string;
@@ -20,31 +22,18 @@ const Dashboard = () => {
       title: "Object Python basics",
       description: "Master the fundamentals of object-oriented programming in Python",
       progress: 65
-    },
-    {
-      id: "2", 
-      title: "The War of Independence: 4th unit from History book",
-      description: "Deep dive into the American Revolutionary War and its key events",
-      progress: 30
-    }
+    }, 
   ]);
 
   useEffect(() => {
     const name = localStorage.getItem("userName") || "Student";
     setUserName(name);
-    
-    // Load study plans from localStorage
+
     const savedPlans = localStorage.getItem("studyPlans");
     if (savedPlans) {
       setStudyPlans(JSON.parse(savedPlans));
     }
-    
-    // Check if user is logged in
-    const isLoggedIn = localStorage.getItem("isLoggedIn");
-    if (!isLoggedIn) {
-      navigate("/login");
-    }
-  }, [navigate]);
+  }, []);
 
   const stats = {
     hoursLearning: 3,
@@ -68,8 +57,8 @@ const Dashboard = () => {
             <span className="text-sm text-muted-foreground">Welcome back, {userName}!</span>
             <Button 
               variant="outline" 
-              onClick={() => {
-                localStorage.clear();
+              onClick={async () => {
+                await signOut(auth);
                 navigate("/");
               }}
             >

@@ -19,7 +19,7 @@ import {
   X
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface Message {
   id: string;
@@ -57,33 +57,9 @@ const StudyModule = () => {
     {
       id: "1",
       type: "ai",
-      content: "Welcome to your test study session! I'm here to help you master optimalization of learning. What would you like to focus on today?",
+      content: "Welcome to your first study session! I'm here to quickly teach you this",
       timestamp: new Date()
     },
-    {
-      id: "2",
-      type: "user",
-      content: "Tell me about React hooks.",
-      timestamp: new Date()
-    },
-    {
-      id: "3",
-      type: "ai",
-      content: "React Hooks are functions that let you “hook into” React state and lifecycle features from function components. They allow you to use state and other React features without writing a class. Popular hooks include `useState`, `useEffect`, `useContext`, `useReducer`, `useCallback`, `useMemo`, and `useRef`.",
-      timestamp: new Date()
-    },
-    {
-      id: "4",
-      type: "user",
-      content: "What is the purpose of useEffect?",
-      timestamp: new Date()
-    },
-    {
-      id: "5",
-      type: "ai",
-      content: "`useEffect` is a React Hook that lets you synchronize a component with an external system. You can use it to perform side effects like data fetching, subscriptions, or manually changing the DOM from a function component. It runs after every render of the component by default, but you can control when it runs using its dependency array.",
-      timestamp: new Date()
-    }
   ]);
   const [generatedContent, setGeneratedContent] = useState<GeneratedContent[]>([]);
   const [activePopout, setActivePopout] = useState<string | null>(null);
@@ -111,6 +87,51 @@ const StudyModule = () => {
     { icon: FileText, label: "Create summary", action: () => handleQuickAction("summary") },
     { icon: RotateCcw, label: "Quick review", action: () => handleQuickAction("review") }
   ];
+
+  // One-time auto key info when entering chat for this plan
+  useEffect(() => {
+    const planId = String(id || "");
+    if (!planId) return;
+    const flagKey = `introShown:${planId}`;
+    const alreadyShown = localStorage.getItem(flagKey) === "true";
+    if (alreadyShown) return;
+
+    try {
+      const plansRaw = localStorage.getItem("studyPlans") || "[]";
+      const plans = JSON.parse(plansRaw) as Array<{ id: string; title: string; description?: string }>;
+      const plan = plans.find(p => p.id === planId);
+      const topic = plan?.title || "this topic";
+      const context = plan?.description ? `\nContext: ${plan.description}` : "";
+
+      (async () => {
+        try {
+          const res = await fetch("/api/chat.js", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type: "summary",
+              message: `Provide the key information, core concepts, and must-know facts about: ${topic}.${context}\nKeep it concise as a starter briefing.`
+            })
+          });
+          const data = await res.json();
+          const content = typeof data?.reply === "string" ? data.reply : "Here are the key points to get started.";
+          const aiIntro: Message = {
+            id: (Date.now() + 2).toString(),
+            type: "ai",
+            content,
+            timestamp: new Date(),
+          };
+          setMessages(prev => [...prev, aiIntro]);
+          localStorage.setItem(flagKey, "true");
+        } catch (e) {
+          // Fail silently if the auto-intro cannot be fetched
+          localStorage.setItem(flagKey, "true");
+        }
+      })();
+    } catch {
+      // Ignore parsing errors
+    }
+  }, [id]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();

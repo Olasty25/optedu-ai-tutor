@@ -2,6 +2,8 @@ import { Button } from "@/components/ui/button";
 import { Navigation } from "@/components/ui/navigation";
 import { FeatureCard } from "@/components/ui/feature-card";
 import { Link } from "react-router-dom";
+import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { 
   BookOpen, 
@@ -16,6 +18,9 @@ import {
 
 const Landing = () => {
   const { t } = useLanguage();
+  const { grantProForEmail } = useAuth();
+  const [betaEmail, setBetaEmail] = useState("");
+  const [betaMsg, setBetaMsg] = useState<string | null>(null);
   
   return (
     <div className="min-h-screen bg-background">
@@ -147,20 +152,25 @@ const Landing = () => {
                 <span className="font-semibold">{t('landing.betaSlots')}</span>
               </div>
             </div>
-            <form 
-              action="https://docs.google.com/forms/d/e/YOUR_FORM_ID/formResponse" 
-              method="POST"
-              target="_blank"
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!betaEmail) return;
+                grantProForEmail(betaEmail);
+                setBetaMsg(t('landing.grantAccessMsg'));
+                setBetaEmail("");
+              }}
               className="max-w-md mx-auto flex gap-3"
             >
               <input
                 type="email"
-                name="entry.YOUR_EMAIL_FIELD_ID"
+                value={betaEmail}
+                onChange={(e) => setBetaEmail(e.target.value)}
                 placeholder={t('landing.betaEmailPlaceholder')}
                 required
                 className="flex-1 px-4 py-3 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
               />
-              <Button 
+              <Button
                 type="submit"
                 size="lg"
                 className="bg-white text-primary hover:bg-white/90 font-semibold px-6"
@@ -168,6 +178,11 @@ const Landing = () => {
                 {t('landing.betaJoinButton')}
               </Button>
             </form>
+            {betaMsg && (
+              <p className="text-sm text-white mt-3 flex items-center justify-center">
+                <CheckCircle className="h-4 w-4 mr-2" /> {betaMsg}
+              </p>
+            )}
             <p className="text-sm text-white/70 mt-4">
               {t('landing.betaDisclaimer')}
             </p>

@@ -51,7 +51,8 @@ export const translations = {
       ctaTitle: "Ready to transform your learning?",
       ctaSubtitle: "Join thousands of students already using AI to accelerate their education",
       ctaButton: "Start Learning Today",
-      footerText: "© 2026 by Optedu AI | Privacy Policy"
+      footerText: "© 2026 by Optedu AI | Privacy Policy",
+      grantAccessMsg:"You've been granted PRO access! Check the app features."
     },
     auth: {
       loginTitle: "Welcome back",
@@ -168,7 +169,8 @@ export const translations = {
       ctaTitle: "Gotowy na transformację swojej nauki?",
       ctaSubtitle: "Dołącz do tysięcy uczniów już używających AI do przyspieszenia swojej edukacji",
       ctaButton: "Rozpocznij naukę już dziś",
-      footerText: "© 2026 by Optedu AI | Polityka prywatności"
+      footerText: "© 2026 by Optedu AI | Polityka prywatności",
+      grantAccessMsg: "Masz dostęp do wersji PRO. Obczaj wszystkie funkcje Optedu AI!"
     },
     auth: {
       loginTitle: "Witaj ponownie",

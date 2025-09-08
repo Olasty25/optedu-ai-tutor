@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
 
 // Firebase configuration is expected to be provided via Vite env variables
 // Create a .env.local with your values, e.g.:
@@ -22,6 +22,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
+
+// Ensure auth state persists across reloads and tabs
+setPersistence(auth, browserLocalPersistence).catch(() => {
+  // Non-fatal: fallback to default persistence
+});
 
 export default app;
 
