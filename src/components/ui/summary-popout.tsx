@@ -1,6 +1,9 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
 
 interface SummaryPopoutProps {
   isOpen: boolean;
@@ -20,12 +23,10 @@ export const SummaryPopout = ({ isOpen, onClose, summary, title }: SummaryPopout
         <ScrollArea className="max-h-[60vh]">
           <Card>
             <CardContent className="p-6">
-              <div className="prose prose-sm max-w-none">
-                {summary.split('\n\n').map((paragraph, index) => (
-                  <p key={index} className="mb-4 leading-relaxed">
-                    {paragraph}
-                  </p>
-                ))}
+              <div className="prose prose-sm dark:prose-invert max-w-none">
+                <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeHighlight]}>
+                  {summary}
+                </ReactMarkdown>
               </div>
             </CardContent>
           </Card>

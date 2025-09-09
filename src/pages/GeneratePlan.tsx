@@ -20,32 +20,61 @@ const GeneratePlan = () => {
   const [showFileUpload, setShowFileUpload] = useState(false);
   
   // Additional customization fields
-  const [learningStyle, setLearningStyle] = useState("");
-  const [timeAvailable, setTimeAvailable] = useState("");
-  const [difficultyLevel, setDifficultyLevel] = useState("");
+  // Temporary goals inputs
+  const [goalWhat, setGoalWhat] = useState("");
+  const [goalWhy, setGoalWhy] = useState("");
+  const [goalWhen, setGoalWhen] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (title && description) {
       setIsGenerating(true);
-      
-      // Simulate plan generation and save to localStorage
-      setTimeout(() => {
-        const newPlan = {
-          id: Date.now().toString(),
-          title: title,
-          description: description,
-          progress: 0
-        };
-        
-        // Get existing plans and add new one
-        const existingPlans = JSON.parse(localStorage.getItem("studyPlans") || "[]");
-        const updatedPlans = [...existingPlans, newPlan];
-        localStorage.setItem("studyPlans", JSON.stringify(updatedPlans));
-        
-        setIsGenerating(false);
-        navigate("/dashboard");
-      }, 2000);
+
+      // Ask AI to lightly refine the title and description
+      let refinedTitle = title;
+      let refinedDescription = description;
+      try {
+        const res = await fetch("/api/chat.js", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "chat",
+            message: `You are improving study plan metadata. Given the following title and description, lightly improve wording for clarity and concision while preserving meaning. Return ONLY valid JSON with keys title and description.\nTitle: ${title}\nDescription: ${description}\nRespond only as: {\"title\":\"...\",\"description\":\"...\"}`,
+          }),
+        });
+        const data = await res.json();
+        try {
+          const parsed = JSON.parse(data.reply);
+          if (parsed?.title && parsed?.description) {
+            refinedTitle = String(parsed.title);
+            refinedDescription = String(parsed.description);
+          }
+        } catch {
+          // If not JSON, ignore and use originals
+        }
+      } catch {
+        // If refinement fails, proceed with originals
+      }
+
+      // Save plan (refined)
+      const newPlan = {
+        id: Date.now().toString(),
+        title: refinedTitle,
+        description: refinedDescription,
+        goals: {
+          what: goalWhat,
+          why: goalWhy,
+          when: goalWhen,
+        },
+        progress: 0,
+      };
+
+      const existingPlans = JSON.parse(localStorage.getItem("studyPlans") || "[]");
+      const updatedPlans = [...existingPlans, newPlan];
+      localStorage.setItem("studyPlans", JSON.stringify(updatedPlans));
+
+      setIsGenerating(false);
+      navigate("/dashboard");
     }
   };
 
@@ -147,7 +176,7 @@ const GeneratePlan = () => {
                       <Settings className="h-5 w-5 text-primary" />
                       <div>
                         <p className="font-medium">Define plan structure</p>
-                        <p className="text-sm text-muted-foreground">Customize your learning path and preferences</p>
+                        <p className="text-sm text-muted-foreground">Answer quick questions about your temporary goals</p>
                       </div>
                     </div>
                     <Switch
@@ -159,52 +188,19 @@ const GeneratePlan = () => {
                 
                 {customizeStructure && (
                   <div className="space-y-4 p-4 bg-accent/20 rounded-lg border border-primary/20">
-                    <h3 className="font-semibold text-primary">Personalize Your Learning Path</h3>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <h3 className="font-semibold text-primary">Temporary Goals</h3>
+                    <div className="space-y-4">
                       <div>
-                        <Label htmlFor="learning-style" className="text-sm font-medium">Learning Style</Label>
-                        <Select value={learningStyle} onValueChange={setLearningStyle}>
-                          <SelectTrigger className="mt-2">
-                            <SelectValue placeholder="Select your learning style" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="visual">Visual Learner</SelectItem>
-                            <SelectItem value="auditory">Auditory Learner</SelectItem>
-                            <SelectItem value="kinesthetic">Kinesthetic Learner</SelectItem>
-                            <SelectItem value="reading">Reading/Writing Learner</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Label htmlFor="goal-what" className="text-sm font-medium">What do you want to achieve short-term?</Label>
+                        <Input id="goal-what" className="mt-2" value={goalWhat} onChange={(e) => setGoalWhat(e.target.value)} placeholder="e.g., understand core causes of the French Revolution" />
                       </div>
-                      
                       <div>
-                        <Label htmlFor="time-available" className="text-sm font-medium">Time Available</Label>
-                        <Select value={timeAvailable} onValueChange={setTimeAvailable}>
-                          <SelectTrigger className="mt-2">
-                            <SelectValue placeholder="How much time do you have?" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="30min">30 minutes/day</SelectItem>
-                            <SelectItem value="1hour">1 hour/day</SelectItem>
-                            <SelectItem value="2hours">2 hours/day</SelectItem>
-                            <SelectItem value="flexible">Flexible schedule</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <Label htmlFor="goal-why" className="text-sm font-medium">Why is this important now?</Label>
+                        <Input id="goal-why" className="mt-2" value={goalWhy} onChange={(e) => setGoalWhy(e.target.value)} placeholder="e.g., upcoming test or project" />
                       </div>
-                      
-                      <div className="md:col-span-2">
-                        <Label htmlFor="difficulty-level" className="text-sm font-medium">Difficulty Level</Label>
-                        <Select value={difficultyLevel} onValueChange={setDifficultyLevel}>
-                          <SelectTrigger className="mt-2">
-                            <SelectValue placeholder="Select difficulty level" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="beginner">Beginner</SelectItem>
-                            <SelectItem value="intermediate">Intermediate</SelectItem>
-                            <SelectItem value="advanced">Advanced</SelectItem>
-                            <SelectItem value="expert">Expert</SelectItem>
-                          </SelectContent>
-                        </Select>
+                      <div>
+                        <Label htmlFor="goal-when" className="text-sm font-medium">By when do you want this done?</Label>
+                        <Input id="goal-when" className="mt-2" value={goalWhen} onChange={(e) => setGoalWhen(e.target.value)} placeholder="e.g., within 7 days" />
                       </div>
                     </div>
                   </div>

@@ -49,11 +49,11 @@ export const FileUploadPopout = ({ isOpen, onClose, onFileUpload, onLinkSubmit }
             <div className="text-center p-8 border-2 border-dashed border-border rounded-lg">
               <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
               <p className="text-sm text-muted-foreground mb-4">
-                Upload PDF files to use as study material
+                Upload PDFs, images (PNG/JPG), text/markdown, or Word documents as study material
               </p>
               <Input
                 type="file"
-                accept=".pdf"
+                accept=".pdf,.png,.jpg,.jpeg,.txt,.md,.doc,.docx"
                 multiple
                 onChange={handleFileChange}
                 className="hidden"

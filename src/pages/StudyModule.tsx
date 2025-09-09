@@ -20,6 +20,9 @@ import {
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
 
 interface Message {
   id: string;
@@ -172,7 +175,7 @@ const StudyModule = () => {
       };
       setMessages((prev) => [...prev, aiResponse]);
     } catch (err) {
-      console.error("Chat error:", err);
+      console.error("Chat error:", err.stack);
       // Możesz tu dodać wiadomość o błędzie dla użytkownika
       const errorResponse: Message = {
           id: (Date.now() + 1).toString(),
@@ -332,10 +335,24 @@ const StudyModule = () => {
         {/* Module Header */}
         <div className="border-b border-border bg-muted/30 px-4 py-6">
           <div className="container mx-auto">
-            <h1 className="text-2xl font-bold mb-2">Object Python Basics</h1>
-            <p className="text-muted-foreground">
-              Module goals: Learn the fundamentals of object-oriented programming in Python
-            </p>
+            <h1 className="text-2xl font-bold mb-2">{(() => {
+              try {
+                const plans = JSON.parse(localStorage.getItem("studyPlans") || "[]");
+                const plan = plans.find((p: any) => String(p.id) === String(id));
+                return plan?.title || "Study Module";
+              } catch {
+                return "Study Module";
+              }
+            })()}</h1>
+            <p className="text-muted-foreground">{(() => {
+              try {
+                const plans = JSON.parse(localStorage.getItem("studyPlans") || "[]");
+                const plan = plans.find((p: any) => String(p.id) === String(id));
+                return plan?.description || "Your personalized learning goals";
+              } catch {
+                return "Your personalized learning goals";
+              }
+            })()}</p>
             
             {/* Study Mode Selector */}
             <div className="flex flex-wrap gap-2 mt-4">
@@ -425,7 +442,18 @@ const StudyModule = () => {
                           onClick={() => isSelectableAiMessage && toggleMessageSelection(message.id)}
                         >
                           <CardContent className="p-4">
-                            <p className="leading-relaxed">{message.content}</p>
+                            {message.type === "ai" ? (
+                              <div className="prose prose-sm dark:prose-invert max-w-none">
+                                <ReactMarkdown
+                                  remarkPlugins={[remarkGfm]}
+                                  rehypePlugins={[rehypeHighlight]}
+                                >
+                                  {message.content}
+                                </ReactMarkdown>
+                              </div>
+                            ) : (
+                              <p className="leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                            )}
                             <p className={`text-xs mt-2 ${
                               message.type === "user" ? "text-white/70" : "text-muted-foreground"
                             }`}>
