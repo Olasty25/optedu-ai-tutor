@@ -202,4 +202,31 @@ All colors MUST be HSL.
   .glass-dark {
     @apply backdrop-blur-md bg-black/10 border border-white/10;
   }
+  
+  /* Hero text glow effects - subtle */
+  .hero-title-glow {
+    text-shadow: 
+      0 0 8px rgba(255, 255, 255, 0.3),
+      0 0 16px rgba(255, 255, 255, 0.2);
+  }
+  
+  .hero-highlight-glow {
+    text-shadow: 
+      0 0 10px hsl(214 95% 55% / 0.4),
+      0 0 20px hsl(214 95% 55% / 0.2);
+    animation: pulse-glow 4s ease-in-out infinite;
+  }
+  
+  .hero-text-backdrop {
+    background: linear-gradient(135deg, 
+      rgba(0, 0, 0, 0.2) 0%, 
+      rgba(0, 0, 0, 0.05) 50%, 
+      rgba(0, 0, 0, 0.2) 100%);
+    backdrop-filter: blur(1px);
+    border-radius: 0.75rem;
+    padding: 1.5rem 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 
+      0 4px 16px rgba(0, 0, 0, 0.2);
+  }
 }

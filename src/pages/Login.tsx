@@ -36,7 +36,7 @@ const Login = () => {
             <BookOpen className="h-10 w-10 text-white" />
             <span className="text-3xl font-bold text-white">Optedu AI</span>
           </Link>
-          <p className="text-white/80">Welcome back to your learning journey</p>
+          <p className="text-white/80">{t('login.welcomeBackToLearning')}</p>
         </div>
 
         <Card className="shadow-glow border-white/10 bg-white/95 backdrop-blur-sm">

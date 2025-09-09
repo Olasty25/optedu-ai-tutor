@@ -6,18 +6,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileUploadPopout } from "@/components/ui/file-upload-popout";
+import { SourcePreviewTiles, SourceItem } from "@/components/ui/source-preview-tiles";
 import { BookOpen, ArrowLeft, Wand2, Upload, Settings } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const GeneratePlan = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [useOwnSources, setUseOwnSources] = useState(false);
   const [customizeStructure, setCustomizeStructure] = useState(false);
   const [showFileUpload, setShowFileUpload] = useState(false);
+  const [sources, setSources] = useState<SourceItem[]>([]);
   
   // Additional customization fields
   // Temporary goals inputs
@@ -30,64 +34,251 @@ const GeneratePlan = () => {
     if (title && description) {
       setIsGenerating(true);
 
-      // Ask AI to lightly refine the title and description
-      let refinedTitle = title;
-      let refinedDescription = description;
       try {
-        const res = await fetch("/api/chat.js", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            type: "chat",
-            message: `You are improving study plan metadata. Given the following title and description, lightly improve wording for clarity and concision while preserving meaning. Return ONLY valid JSON with keys title and description.\nTitle: ${title}\nDescription: ${description}\nRespond only as: {\"title\":\"...\",\"description\":\"...\"}`,
-          }),
-        });
-        const data = await res.json();
+        const userId = "user_" + Date.now(); // In real app, get from auth context
+        const studyPlanId = Date.now().toString();
+
+        // If we have sources, use the new backend endpoint
+        if (sources.length > 0) {
+          const response = await fetch("http://localhost:5000/generate-plan-with-sources", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              title,
+              description,
+              sources: sources.map(s => ({
+                name: s.name,
+                content: s.preview,
+                type: s.type
+              })),
+              userId,
+              studyPlanId,
+              goals: {
+                what: goalWhat,
+                why: goalWhy,
+                when: goalWhen,
+              }
+            }),
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            // Parse the AI response
+            let planData;
+            try {
+              planData = JSON.parse(data.plan);
+            } catch {
+              // If not JSON, create a simple plan structure
+              planData = {
+                title: title,
+                description: description,
+                modules: [],
+                timeline: "Custom timeline",
+                tips: []
+              };
+            }
+
+            // Save plan
+            const newPlan = {
+              id: studyPlanId,
+              title: planData.title || title,
+              description: planData.description || description,
+              goals: {
+                what: goalWhat,
+                why: goalWhy,
+                when: goalWhen,
+              },
+              progress: 0,
+              sources: sources,
+              aiGenerated: true,
+              modules: planData.modules || [],
+              timeline: planData.timeline,
+              tips: planData.tips || []
+            };
+
+            const existingPlans = JSON.parse(localStorage.getItem("studyPlans") || "[]");
+            const updatedPlans = [...existingPlans, newPlan];
+            localStorage.setItem("studyPlans", JSON.stringify(updatedPlans));
+
+            setIsGenerating(false);
+            navigate("/dashboard");
+            return;
+          }
+        }
+
+        // Fallback to original logic if no sources or API fails
+        // Ask AI to lightly refine the title and description
+        let refinedTitle = title;
+        let refinedDescription = description;
         try {
-          const parsed = JSON.parse(data.reply);
-          if (parsed?.title && parsed?.description) {
-            refinedTitle = String(parsed.title);
-            refinedDescription = String(parsed.description);
+          const res = await fetch("/api/chat.js", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type: "chat",
+              message: `You are improving study plan metadata. Given the following title and description, lightly improve wording for clarity and concision while preserving meaning. Return ONLY valid JSON with keys title and description.\nTitle: ${title}\nDescription: ${description}\nRespond only as: {\"title\":\"...\",\"description\":\"...\"}`,
+            }),
+          });
+          const data = await res.json();
+          try {
+            const parsed = JSON.parse(data.reply);
+            if (parsed?.title && parsed?.description) {
+              refinedTitle = String(parsed.title);
+              refinedDescription = String(parsed.description);
+            }
+          } catch {
+            // If not JSON, ignore and use originals
           }
         } catch {
-          // If not JSON, ignore and use originals
+          // If refinement fails, proceed with originals
         }
-      } catch {
-        // If refinement fails, proceed with originals
+
+        // Save plan (refined)
+        const newPlan = {
+          id: Date.now().toString(),
+          title: refinedTitle,
+          description: refinedDescription,
+          goals: {
+            what: goalWhat,
+            why: goalWhy,
+            when: goalWhen,
+          },
+          progress: 0,
+        };
+
+        const existingPlans = JSON.parse(localStorage.getItem("studyPlans") || "[]");
+        const updatedPlans = [...existingPlans, newPlan];
+        localStorage.setItem("studyPlans", JSON.stringify(updatedPlans));
+
+        setIsGenerating(false);
+        navigate("/dashboard");
+      } catch (error) {
+        console.error("Error generating plan:", error);
+        setIsGenerating(false);
+        // Still navigate to dashboard even if there's an error
+        navigate("/dashboard");
       }
-
-      // Save plan (refined)
-      const newPlan = {
-        id: Date.now().toString(),
-        title: refinedTitle,
-        description: refinedDescription,
-        goals: {
-          what: goalWhat,
-          why: goalWhy,
-          when: goalWhen,
-        },
-        progress: 0,
-      };
-
-      const existingPlans = JSON.parse(localStorage.getItem("studyPlans") || "[]");
-      const updatedPlans = [...existingPlans, newPlan];
-      localStorage.setItem("studyPlans", JSON.stringify(updatedPlans));
-
-      setIsGenerating(false);
-      navigate("/dashboard");
     }
   };
 
-  const handleFileUpload = (files: FileList | null) => {
+  const handleFileUpload = async (files: FileList | null) => {
     if (files) {
-      console.log("Files uploaded:", Array.from(files).map(f => f.name));
-      // In real app, would process uploaded files
+      const fileArray = Array.from(files);
+      
+      for (const file of fileArray) {
+        // Add file to sources with uploading status
+        const tempId = Date.now().toString() + Math.random();
+        const newSource: SourceItem = {
+          id: tempId,
+          type: 'file',
+          name: file.name,
+          size: file.size,
+          status: 'uploading'
+        };
+        
+        setSources(prev => [...prev, newSource]);
+        
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('userId', 'user_' + Date.now());
+          formData.append('studyPlanId', 'temp');
+
+          console.log('Uploading file:', file.name, 'Size:', file.size);
+
+          const response = await fetch('http://localhost:5000/upload-file', {
+            method: 'POST',
+            body: formData,
+          });
+          console.log('Upload response status:', response.status);
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log('Upload successful:', data);
+            setSources(prev => prev.map(s => 
+              s.id === tempId 
+                ? { ...data.file, id: tempId }
+                : s
+            ));
+          } else {
+            const errorData = await response.json();
+            console.error('Upload failed:', errorData);
+            setSources(prev => prev.map(s => 
+              s.id === tempId 
+                ? { ...s, status: 'error', error: errorData.error || 'Upload failed' }
+                : s
+            ));
+          }
+        } catch (error) {
+          console.error('File upload error:', error);
+          setSources(prev => prev.map(s => 
+            s.id === tempId 
+              ? { ...s, status: 'error', error: 'Network error: ' + error.message }
+              : s
+          ));
+        }
+      }
     }
   };
 
-  const handleLinkSubmit = (link: string) => {
-    console.log("Link submitted:", link);
-    // In real app, would process the link
+  const handleLinkSubmit = async (link: string) => {
+    if (link) {
+      const tempId = Date.now().toString() + Math.random();
+      const newSource: SourceItem = {
+        id: tempId,
+        type: 'link',
+        name: new URL(link).hostname,
+        url: link,
+        status: 'processing'
+      };
+      
+      setSources(prev => [...prev, newSource]);
+      
+      try {
+        const response = await fetch('http://localhost:5000/scrape-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url: link,
+            userId: 'user_' + Date.now(),
+            studyPlanId: 'temp'
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setSources(prev => prev.map(s => 
+            s.id === tempId 
+              ? { ...data.file, id: tempId }
+              : s
+          ));
+        } else {
+          const errorData = await response.json();
+          setSources(prev => prev.map(s => 
+            s.id === tempId 
+              ? { ...s, status: 'error', error: errorData.error }
+              : s
+          ));
+        }
+      } catch (error) {
+        console.error('Link processing error:', error);
+        setSources(prev => prev.map(s => 
+          s.id === tempId 
+            ? { ...s, status: 'error', error: 'Processing failed' }
+            : s
+        ));
+      }
+    }
+  };
+
+  const handleRemoveSource = (id: string) => {
+    setSources(prev => prev.filter(s => s.id !== id));
+  };
+
+  const handleRetrySource = (id: string) => {
+    // For now, just remove the failed source
+    // In a real app, you might want to retry the processing
+    handleRemoveSource(id);
   };
 
   return (
@@ -97,7 +288,7 @@ const GeneratePlan = () => {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center space-x-2 text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-5 w-5" />
-            <span>Back to Dashboard</span>
+            <span>{t('generatePlan.backToDashboard')}</span>
           </Link>
           
           <Link to="/" className="flex items-center space-x-2">
@@ -112,9 +303,9 @@ const GeneratePlan = () => {
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-2xl mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold mb-4">Generate Your Plan</h1>
+            <h1 className="text-4xl font-bold mb-4">{t('generatePlan.title')}</h1>
             <p className="text-xl text-muted-foreground">
-              Tell us what you want to learn and we'll create a personalized study plan for you
+              {t('generatePlan.description')}
             </p>
           </div>
 
@@ -122,13 +313,13 @@ const GeneratePlan = () => {
             <CardHeader>
               <CardTitle className="flex items-center">
                 <Wand2 className="h-6 w-6 mr-2 text-primary" />
-                Create Study Plan
+                {t('generatePlan.createStudyPlan')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <Label htmlFor="title" className="text-base font-medium">Title</Label>
+                  <Label htmlFor="title" className="text-base font-medium">{t('generatePlan.planTitle')}</Label>
                   <Input
                     id="title"
                     placeholder="e.g. French revolution"
@@ -140,7 +331,7 @@ const GeneratePlan = () => {
                 </div>
                 
                 <div>
-                  <Label htmlFor="description" className="text-base font-medium">Description</Label>
+                  <Label htmlFor="description" className="text-base font-medium">{t('generatePlan.planDescription')}</Label>
                   <Textarea
                     id="description"
                     placeholder="e.g. 3rd chapter, only key info"
@@ -156,8 +347,8 @@ const GeneratePlan = () => {
                     <div className="flex items-center space-x-3">
                       <Upload className="h-5 w-5 text-primary" />
                       <div>
-                        <p className="font-medium">Use your own sources</p>
-                        <p className="text-sm text-muted-foreground">Upload PDFs or paste links to customize content</p>
+                        <p className="font-medium">{t('generatePlan.useOwnSources')}</p>
+                        <p className="text-sm text-muted-foreground">{t('generatePlan.useOwnSourcesDescription')}</p>
                       </div>
                     </div>
                     <Switch
@@ -175,8 +366,8 @@ const GeneratePlan = () => {
                     <div className="flex items-center space-x-3">
                       <Settings className="h-5 w-5 text-primary" />
                       <div>
-                        <p className="font-medium">Define plan structure</p>
-                        <p className="text-sm text-muted-foreground">Answer quick questions about your temporary goals</p>
+                        <p className="font-medium">{t('generatePlan.definePlanStructure')}</p>
+                        <p className="text-sm text-muted-foreground">{t('generatePlan.definePlanStructureDescription')}</p>
                       </div>
                     </div>
                     <Switch
@@ -186,20 +377,41 @@ const GeneratePlan = () => {
                   </div>
                 </div>
                 
+                {useOwnSources && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-end">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setShowFileUpload(true)}
+                        className="flex items-center space-x-2"
+                      >
+                        <Upload className="h-4 w-4" />
+                        <span>{t('generatePlan.addSources')}</span>
+                      </Button>
+                    </div>
+                    <SourcePreviewTiles
+                      sources={sources}
+                      onRemove={handleRemoveSource}
+                      onRetry={handleRetrySource}
+                    />
+                  </div>
+                )}
+
                 {customizeStructure && (
                   <div className="space-y-4 p-4 bg-accent/20 rounded-lg border border-primary/20">
-                    <h3 className="font-semibold text-primary">Temporary Goals</h3>
+                    <h3 className="font-semibold text-primary">{t('generatePlan.temporaryGoals')}</h3>
                     <div className="space-y-4">
                       <div>
-                        <Label htmlFor="goal-what" className="text-sm font-medium">What do you want to achieve short-term?</Label>
+                        <Label htmlFor="goal-what" className="text-sm font-medium">{t('generatePlan.whatDoYouWantToAchieve')}</Label>
                         <Input id="goal-what" className="mt-2" value={goalWhat} onChange={(e) => setGoalWhat(e.target.value)} placeholder="e.g., understand core causes of the French Revolution" />
                       </div>
                       <div>
-                        <Label htmlFor="goal-why" className="text-sm font-medium">Why is this important now?</Label>
+                        <Label htmlFor="goal-why" className="text-sm font-medium">{t('generatePlan.whyIsThisImportant')}</Label>
                         <Input id="goal-why" className="mt-2" value={goalWhy} onChange={(e) => setGoalWhy(e.target.value)} placeholder="e.g., upcoming test or project" />
                       </div>
                       <div>
-                        <Label htmlFor="goal-when" className="text-sm font-medium">By when do you want this done?</Label>
+                        <Label htmlFor="goal-when" className="text-sm font-medium">{t('generatePlan.byWhenDoYouWant')}</Label>
                         <Input id="goal-when" className="mt-2" value={goalWhen} onChange={(e) => setGoalWhen(e.target.value)} placeholder="e.g., within 7 days" />
                       </div>
                     </div>
@@ -215,12 +427,12 @@ const GeneratePlan = () => {
                   {isGenerating ? (
                     <>
                       <Wand2 className="mr-2 h-4 w-4 animate-spin" />
-                      Generating Plan...
+                      {t('generatePlan.generatingPlan')}
                     </>
                   ) : (
                     <>
                       <Wand2 className="mr-2 h-4 w-4" />
-                      Generate Plan
+                      {t('generatePlan.generatePlan')}
                     </>
                   )}
                 </Button>
@@ -234,9 +446,9 @@ const GeneratePlan = () => {
                 <div className="text-center">
                   <div className="animate-pulse">
                     <Wand2 className="h-8 w-8 mx-auto text-primary mb-4" />
-                    <h3 className="text-lg font-semibold mb-2">Creating your personalized study plan...</h3>
+                    <h3 className="text-lg font-semibold mb-2">{t('generatePlan.creatingPersonalizedPlan')}</h3>
                     <p className="text-muted-foreground">
-                      Our AI is analyzing your preferences and generating the optimal learning path for "{title}"
+                      {t('generatePlan.aiAnalyzingPreferences')} "{title}"
                     </p>
                   </div>
                 </div>

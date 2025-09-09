@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Navigation } from "@/components/ui/navigation";
 import { FeatureCard } from "@/components/ui/feature-card";
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { 
@@ -21,6 +21,38 @@ const Landing = () => {
   const { grantProForEmail } = useAuth();
   const [betaEmail, setBetaEmail] = useState("");
   const [betaMsg, setBetaMsg] = useState<string | null>(null);
+  const [betaSlotsRemaining, setBetaSlotsRemaining] = useState(30);
+
+  // Load beta slots from localStorage on component mount
+  useEffect(() => {
+    const savedSlots = localStorage.getItem('betaSlotsRemaining');
+    if (savedSlots) {
+      setBetaSlotsRemaining(parseInt(savedSlots, 10));
+    }
+  }, []);
+
+  // Save beta slots to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('betaSlotsRemaining', betaSlotsRemaining.toString());
+  }, [betaSlotsRemaining]);
+
+  const handleBetaSignup = (email: string) => {
+    if (!email || betaSlotsRemaining <= 0) return;
+    
+    // Decrement the counter
+    setBetaSlotsRemaining(prev => Math.max(0, prev - 1));
+    
+    // Grant access and show message
+    grantProForEmail(email);
+    setBetaMsg(t('landing.grantAccessMsg'));
+    setBetaEmail("");
+  };
+
+  // Reset function for testing (you can remove this in production)
+  const resetBetaSlots = () => {
+    setBetaSlotsRemaining(30);
+    setBetaMsg(null);
+  };
   
   return (
     <div className="min-h-screen bg-background">
@@ -40,13 +72,15 @@ const Landing = () => {
         <div className="absolute inset-0 bg-black/40" />
         <div className="container mx-auto text-center relative z-10">
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-white">
-              {t('landing.heroTitle')}{" "}
-              <span className="bg-gradient-hero bg-clip-text text-transparent">
-                {t('landing.heroHighlight')}
-              </span>
-            </h1>
-            <p className="text-xl md:text-2xl text-white/90 mb-8 leading-relaxed">
+            <div className="hero-text-backdrop">
+              <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-white hero-title-glow">
+                {t('landing.heroTitle')}{" "}
+                <span className="bg-gradient-hero bg-clip-text text-transparent hero-highlight-glow">
+                  {t('landing.heroHighlight')}
+                </span>
+              </h1>
+            </div>
+            <p className="text-xl md:text-2xl text-white/95 mb-8 leading-relaxed">
               {t('landing.heroSubtitle')}
             </p>
             <Link to="/register">
@@ -144,21 +178,21 @@ const Landing = () => {
               {t('landing.betaTitle')}
             </h2>
             <p className="text-xl mb-8 text-white/90 leading-relaxed">
-              {t('landing.betaSubtitle')}
+              {t('landing.betaSlots', { count: betaSlotsRemaining })}
             </p>
             <div className="flex items-center justify-center mb-8">
               <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-lg px-6 py-3">
                 <Users className="h-5 w-5 mr-2" />
-                <span className="font-semibold">{t('landing.betaSlots')}</span>
+                <span className="font-semibold">
+                  {betaSlotsRemaining} {betaSlotsRemaining === 1 ? 'slot' : 'slots'} remaining
+                </span>
               </div>
             </div>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                if (!betaEmail) return;
-                grantProForEmail(betaEmail);
-                setBetaMsg(t('landing.grantAccessMsg'));
-                setBetaEmail("");
+                if (!betaEmail || betaSlotsRemaining <= 0) return;
+                handleBetaSignup(betaEmail);
               }}
               className="max-w-md mx-auto flex gap-3"
             >
@@ -174,8 +208,9 @@ const Landing = () => {
                 type="submit"
                 size="lg"
                 className="bg-white text-primary hover:bg-white/90 font-semibold px-6"
+                disabled={betaSlotsRemaining <= 0}
               >
-                {t('landing.betaJoinButton')}
+                {betaSlotsRemaining <= 0 ? 'Beta Full' : t('landing.betaJoinButton')}
               </Button>
             </form>
             {betaMsg && (
@@ -183,9 +218,23 @@ const Landing = () => {
                 <CheckCircle className="h-4 w-4 mr-2" /> {betaMsg}
               </p>
             )}
+            {betaSlotsRemaining <= 0 && (
+              <p className="text-sm text-yellow-300 mt-3 flex items-center justify-center">
+                <Users className="h-4 w-4 mr-2" /> Beta testing is now full! Thank you for your interest.
+              </p>
+            )}
             <p className="text-sm text-white/70 mt-4">
               {t('landing.betaDisclaimer')}
             </p>
+            {/* Reset button for testing - remove in production */}
+            {process.env.NODE_ENV === 'development' && (
+              <button
+                onClick={resetBetaSlots}
+                className="text-xs text-white/50 hover:text-white/70 mt-2 underline"
+              >
+                Reset Beta Slots (Dev Only)
+              </button>
+            )}
           </div>
         </div>
       </section>

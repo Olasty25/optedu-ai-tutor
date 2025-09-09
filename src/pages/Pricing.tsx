@@ -4,9 +4,11 @@ import { BookOpen, Check, Star, Crown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getStripe } from "@/lib/stripe";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const Pricing = () => {
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   const handleUpgrade = async () => {
     // Expect a backend endpoint to create a Checkout Session and return { sessionId }
@@ -40,7 +42,7 @@ const Pricing = () => {
           <div className="flex items-center space-x-4">
             <Link to="/dashboard">
               <Button variant="outline">
-                Back to Dashboard
+                {t('pricing.backToDashboard')}
               </Button>
             </Link>
           </div>
@@ -51,10 +53,10 @@ const Pricing = () => {
         {/* Hero Section */}
         <div className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Choose Your Learning Plan
+            {t('pricing.chooseYourLearningPlan')}
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Unlock unlimited study plans and advanced AI features to accelerate your learning journey
+            {t('pricing.unlockUnlimitedDescription')}
           </p>
         </div>
 
@@ -63,31 +65,31 @@ const Pricing = () => {
           {/* Free Plan */}
           <Card className="relative">
             <CardHeader className="text-center pb-2">
-              <CardTitle className="text-2xl mb-2">Free</CardTitle>
+              <CardTitle className="text-2xl mb-2">{t('pricing.free')}</CardTitle>
               <div className="text-4xl font-bold">$0</div>
-              <p className="text-muted-foreground">per month</p>
+              <p className="text-muted-foreground">{t('pricing.perMonth')}</p>
             </CardHeader>
             <CardContent className="pt-6">
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-primary mr-3" />
-                  <span>3 study plans per month</span>
+                  <span>{t('pricing.studyPlansPerMonth')}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-primary mr-3" />
-                  <span>Basic AI tutor</span>
+                  <span>{t('pricing.basicAITutor')}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-primary mr-3" />
-                  <span>Flashcards & summaries</span>
+                  <span>{t('pricing.flashcardsSummaries')}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-primary mr-3" />
-                  <span>Progress tracking</span>
+                  <span>{t('pricing.progressTracking')}</span>
                 </li>
               </ul>
               <Button variant="outline" className="w-full" disabled>
-                Current Plan
+                {t('pricing.currentPlan')}
               </Button>
             </CardContent>
           </Card>
@@ -97,46 +99,46 @@ const Pricing = () => {
             <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
               <div className="bg-gradient-hero text-white px-4 py-1 rounded-full text-sm font-semibold flex items-center">
                 <Crown className="h-4 w-4 mr-1" />
-                Most Popular
+                {t('pricing.mostPopular')}
               </div>
             </div>
             <CardHeader className="text-center pb-2">
               <CardTitle className="text-2xl mb-2 flex items-center justify-center">
                 <Star className="h-6 w-6 text-primary mr-2" />
-                Pro
+                {t('pricing.pro')}
               </CardTitle>
               <div className="text-4xl font-bold">$9.99</div>
-              <p className="text-muted-foreground">per month</p>
+              <p className="text-muted-foreground">{t('pricing.perMonth')}</p>
             </CardHeader>
             <CardContent className="pt-6">
               <ul className="space-y-3 mb-8">
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-primary mr-3" />
-                  <span>Unlimited study plans</span>
+                  <span>{t('pricing.unlimitedStudyPlans')}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-primary mr-3" />
-                  <span>Advanced AI tutor with GPT-4</span>
+                  <span>{t('pricing.advancedAITutor')}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-primary mr-3" />
-                  <span>Interactive flashcards & quizzes</span>
+                  <span>{t('pricing.interactiveFlashcards')}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-primary mr-3" />
-                  <span>Detailed analytics & insights</span>
+                  <span>{t('pricing.detailedAnalytics')}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-primary mr-3" />
-                  <span>Export study materials</span>
+                  <span>{t('pricing.exportStudyMaterials')}</span>
                 </li>
                 <li className="flex items-center">
                   <Check className="h-5 w-5 text-primary mr-3" />
-                  <span>Priority support</span>
+                  <span>{t('pricing.prioritySupport')}</span>
                 </li>
               </ul>
               <Button className="w-full bg-gradient-hero hover:opacity-90 transition-opacity" onClick={handleUpgrade}>
-                Upgrade to Pro
+                {t('pricing.upgradeToPro')}
               </Button>
             </CardContent>
           </Card>
@@ -144,23 +146,23 @@ const Pricing = () => {
 
         {/* FAQ Section */}
         <div className="mt-16 text-center">
-          <h2 className="text-2xl font-bold mb-8">Frequently Asked Questions</h2>
+          <h2 className="text-2xl font-bold mb-8">{t('pricing.frequentlyAskedQuestions')}</h2>
           <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto text-left">
             <div>
-              <h3 className="font-semibold mb-2">Can I cancel anytime?</h3>
-              <p className="text-muted-foreground">Yes, you can cancel your subscription at any time. No long-term contracts.</p>
+              <h3 className="font-semibold mb-2">{t('pricing.canICancelAnytime')}</h3>
+              <p className="text-muted-foreground">{t('pricing.cancelAnytimeAnswer')}</p>
             </div>
             <div>
-              <h3 className="font-semibold mb-2">What payment methods do you accept?</h3>
-              <p className="text-muted-foreground">We accept all major credit cards and PayPal for your convenience.</p>
+              <h3 className="font-semibold mb-2">{t('pricing.whatPaymentMethods')}</h3>
+              <p className="text-muted-foreground">{t('pricing.paymentMethodsAnswer')}</p>
             </div>
             <div>
-              <h3 className="font-semibold mb-2">Is there a free trial?</h3>
-              <p className="text-muted-foreground">Yes, Pro features include a 7-day free trial when you first upgrade.</p>
+              <h3 className="font-semibold mb-2">{t('pricing.isThereFreeTrial')}</h3>
+              <p className="text-muted-foreground">{t('pricing.freeTrialAnswer')}</p>
             </div>
             <div>
-              <h3 className="font-semibold mb-2">Do you offer student discounts?</h3>
-              <p className="text-muted-foreground">Yes! Contact us with your student ID for a 50% discount on Pro plans.</p>
+              <h3 className="font-semibold mb-2">{t('pricing.doYouOfferStudentDiscounts')}</h3>
+              <p className="text-muted-foreground">{t('pricing.studentDiscountsAnswer')}</p>
             </div>
           </div>
         </div>

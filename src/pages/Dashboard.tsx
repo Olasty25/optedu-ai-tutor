@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface StudyPlan {
   id: string;
@@ -15,6 +16,7 @@ interface StudyPlan {
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [userName, setUserName] = useState("");
   const [studyPlans, setStudyPlans] = useState<StudyPlan[]>([
     {
@@ -54,7 +56,7 @@ const Dashboard = () => {
           </Link>
           
           <div className="flex items-center space-x-4">
-            <span className="text-sm text-muted-foreground">Welcome back, {userName}!</span>
+            <span className="text-sm text-muted-foreground">{t('dashboard.welcomeBack')}, {userName}!</span>
             <Button 
               variant="outline" 
               onClick={async () => {
@@ -62,7 +64,7 @@ const Dashboard = () => {
                 navigate("/");
               }}
             >
-              Logout
+              {t('dashboard.logout')}
             </Button>
           </div>
         </div>
@@ -72,10 +74,10 @@ const Dashboard = () => {
         {/* Main Content */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            What you'll master today?
+            {t('dashboard.whatYoullMaster')}
           </h1>
           <p className="text-xl text-muted-foreground mb-8">
-            We'll get to know your preferences from a bunch of simple questions. AI will analyze your way of learning and keep up.
+            {t('dashboard.getToKnowDescription')}
           </p>
           
           <Link to="/generate-plan">
@@ -84,14 +86,14 @@ const Dashboard = () => {
               className="bg-primary text-white hover:bg-primary/90 px-8 py-6 text-lg rounded-xl"
             >
               <Plus className="mr-2 h-5 w-5" />
-              Generate New Plan
+              {t('dashboard.generateNewPlan')}
             </Button>
           </Link>
         </div>
 
         {/* Study Plans */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Your Study Plans:</h2>
+          <h2 className="text-2xl font-bold mb-6">{t('dashboard.yourStudyPlans')}</h2>
           
           <div className="grid md:grid-cols-2 gap-6 mb-8">
             {studyPlans.map((plan) => (
@@ -103,7 +105,7 @@ const Dashboard = () => {
                   <p className="text-muted-foreground mb-4">{plan.description}</p>
                   <div className="mb-4">
                     <div className="flex justify-between text-sm mb-1">
-                      <span>Progress</span>
+                      <span>{t('dashboard.progress')}</span>
                       <span>{plan.progress}%</span>
                     </div>
                     <div className="w-full bg-muted rounded-full h-2">
@@ -115,7 +117,7 @@ const Dashboard = () => {
                   </div>
                   <Link to={`/study/${plan.id}`}>
                     <Button className="w-full group-hover:bg-primary/90">
-                      Continue
+                      {t('dashboard.continue')}
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
@@ -125,10 +127,10 @@ const Dashboard = () => {
           </div>
 
           <div className="text-center">
-            <p className="text-lg mb-4">{stats.freePlansLeft} free plans left.</p>
+            <p className="text-lg mb-4">{stats.freePlansLeft} {t('dashboard.freePlansLeft')}</p>
             <Link to="/pricing">
               <Button variant="outline" size="lg" className="px-8">
-                Upgrade to Pro
+                {t('dashboard.upgradeToPro')}
               </Button>
             </Link>
           </div>
@@ -136,16 +138,16 @@ const Dashboard = () => {
 
         {/* Stats */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-6 text-center">Your Stats:</h2>
+          <h2 className="text-2xl font-bold mb-6 text-center">{t('dashboard.yourStats')}</h2>
           
           <div className="grid md:grid-cols-2 gap-8 max-w-md mx-auto">
             <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">Hours spent learning</h3>
+              <h3 className="text-lg font-semibold mb-2">{t('dashboard.hoursSpentLearning')}</h3>
               <div className="text-3xl font-bold text-primary">{stats.hoursLearning} h</div>
             </div>
             
             <div className="text-center">
-              <h3 className="text-lg font-semibold mb-2">Plans Completed</h3>
+              <h3 className="text-lg font-semibold mb-2">{t('dashboard.plansCompleted')}</h3>
               <div className="text-3xl font-bold text-accent">{stats.plansCompleted}</div>
             </div>
           </div>

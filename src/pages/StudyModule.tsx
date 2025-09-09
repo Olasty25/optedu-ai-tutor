@@ -16,13 +16,19 @@ import {
   RotateCcw,
   Bot,
   User,
-  X
+  X,
+  Plus,
+  Expand,
+  RefreshCw,
+  StickyNote,
+  MapPin
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Message {
   id: string;
@@ -52,30 +58,38 @@ interface GeneratedContent {
   data: Flashcard[] | string | Question[];
 }
 
+interface Note {
+  id: string;
+  content: string;
+  timestamp: string;
+  source: string;
+}
+
 const StudyModule = () => {
   const { id } = useParams();
+  const { t } = useLanguage();
   const [currentMessage, setCurrentMessage] = useState("");
   const [activeMode, setActiveMode] = useState<"self" | "guided" | "review">("self");
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      type: "ai",
-      content: "Welcome to your first study session! I'm here to quickly teach you this",
-      timestamp: new Date()
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [generatedContent, setGeneratedContent] = useState<GeneratedContent[]>([]);
   const [activePopout, setActivePopout] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [progressTest, setProgressTest] = useState<Question[]>([]);
+  const [currentTestQuestion, setCurrentTestQuestion] = useState(0);
+  const [testAnswers, setTestAnswers] = useState<number[]>([]);
+  const [testCompleted, setTestCompleted] = useState(false);
 
   // Nowe stany do obsługi wyboru wiadomości
   const [isSelectingMessages, setIsSelectingMessages] = useState(false);
   const [selectedMessageIds, setSelectedMessageIds] = useState<string[]>([]);
   const [currentActionType, setCurrentActionType] = useState<"flashcards" | "summary" | "review" | null>(null);
+  const [processingMessageId, setProcessingMessageId] = useState<string | null>(null);
 
   const studyModes = [
-    { id: "self", label: "Self-study mode", active: activeMode === "self" },
-    { id: "guided", label: "Guided by AI Mode", active: activeMode === "guided" },
-    { id: "review", label: "Review mode", active: activeMode === "review" }
+    { id: "self", label: t('studyModule.studyTalk'), active: activeMode === "self" },
+    { id: "guided", label: t('studyModule.yourNotes'), active: activeMode === "guided" },
+    { id: "review", label: t('studyModule.yourProgress'), active: activeMode === "review" }
   ];
 
   // Funkcja, która rozpoczyna tryb wyboru wiadomości
@@ -86,59 +100,127 @@ const StudyModule = () => {
   };
 
   const quickActions = [
-    { icon: Lightbulb, label: "Generate flashcards", action: () => handleQuickAction("flashcards") },
-    { icon: FileText, label: "Create summary", action: () => handleQuickAction("summary") },
-    { icon: RotateCcw, label: "Quick review", action: () => handleQuickAction("review") }
+    { icon: Lightbulb, label: t('studyModule.generateFlashcards'), action: () => handleQuickAction("flashcards") },
+    { icon: FileText, label: t('studyModule.createSummary'), action: () => handleQuickAction("summary") },
+    { icon: RotateCcw, label: t('studyModule.quickReview'), action: () => handleQuickAction("review") }
   ];
 
-  // One-time auto key info when entering chat for this plan
-  useEffect(() => {
+  // Get current user ID (you might want to get this from auth context)
+  const getCurrentUserId = () => {
+    // For now, using a simple user ID from localStorage
+    // In a real app, this would come from your auth system
+    let userId = localStorage.getItem("currentUserId");
+    if (!userId) {
+      userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      localStorage.setItem("currentUserId", userId);
+    }
+    return userId;
+  };
+
+  // Load messages and generated content from database
+  const loadStudySession = async () => {
     const planId = String(id || "");
-    if (!planId) return;
-    const flagKey = `introShown:${planId}`;
-    const alreadyShown = localStorage.getItem(flagKey) === "true";
-    if (alreadyShown) return;
+    const userId = getCurrentUserId();
+    
+    if (!planId) {
+      setIsLoading(false);
+      return;
+    }
 
     try {
-      const plansRaw = localStorage.getItem("studyPlans") || "[]";
-      const plans = JSON.parse(plansRaw) as Array<{ id: string; title: string; description?: string }>;
-      const plan = plans.find(p => p.id === planId);
-      const topic = plan?.title || "this topic";
-      const context = plan?.description ? `\nContext: ${plan.description}` : "";
-
-      (async () => {
-        try {
-          const res = await fetch("/api/chat.js", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              type: "summary",
-              message: `Provide the key information, core concepts, and must-know facts about: ${topic}.${context}\nKeep it concise as a starter briefing.`
-            })
-          });
-          const data = await res.json();
-          const content = typeof data?.reply === "string" ? data.reply : "Here are the key points to get started.";
-          const aiIntro: Message = {
-            id: (Date.now() + 2).toString(),
-            type: "ai",
-            content,
-            timestamp: new Date(),
-          };
-          setMessages(prev => [...prev, aiIntro]);
-          localStorage.setItem(flagKey, "true");
-        } catch (e) {
-          // Fail silently if the auto-intro cannot be fetched
-          localStorage.setItem(flagKey, "true");
+      // Load messages
+      let loadedMessages: Message[] = [];
+      try {
+        const messagesRes = await fetch(`http://localhost:5000/messages/${userId}/${planId}`);
+        if (messagesRes.ok) {
+          const messagesData = await messagesRes.json();
+          loadedMessages = messagesData.messages.map((msg: any) => ({
+            id: msg.id,
+            type: msg.type,
+            content: msg.content,
+            timestamp: new Date(msg.timestamp)
+          }));
+          setMessages(loadedMessages);
         }
-      })();
-    } catch {
-      // Ignore parsing errors
+      } catch (error) {
+        console.log("Backend not available, using local storage fallback");
+      }
+
+      // Load generated content
+      try {
+        const contentRes = await fetch(`http://localhost:5000/generated-content/${userId}/${planId}`);
+        if (contentRes.ok) {
+          const contentData = await contentRes.json();
+          setGeneratedContent(contentData.content);
+        }
+      } catch (error) {
+        console.log("Backend not available for generated content");
+      }
+
+      // If no messages exist, show intro
+      if (loadedMessages.length === 0) {
+        const flagKey = `introShown:${planId}`;
+        const alreadyShown = localStorage.getItem(flagKey) === "true";
+        
+        if (!alreadyShown) {
+          try {
+            const plansRaw = localStorage.getItem("studyPlans") || "[]";
+            const plans = JSON.parse(plansRaw) as Array<{ id: string; title: string; description?: string }>;
+            const plan = plans.find(p => p.id === planId);
+            const topic = plan?.title || "this topic";
+            const context = plan?.description ? `\nContext: ${plan.description}` : "";
+
+            const res = await fetch("http://localhost:5000/chat", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                type: "summary",
+                message: `Provide the key information, core concepts, and must-know facts about: ${topic}.${context}\nKeep it concise as a starter briefing.`
+              })
+            });
+            const data = await res.json();
+            const content = typeof data?.reply === "string" ? data.reply : "Here are the key points to get started.";
+            const aiIntro: Message = {
+              id: (Date.now() + 2).toString(),
+              type: "ai",
+              content,
+              timestamp: new Date(),
+            };
+            setMessages(prev => [...prev, aiIntro]);
+            localStorage.setItem(flagKey, "true");
+          } catch (e) {
+            // Fail silently if the auto-intro cannot be fetched
+            localStorage.setItem(flagKey, "true");
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error loading study session:", error);
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  // Load notes from localStorage
+  const loadNotes = () => {
+    const planId = String(id || "");
+    const notesKey = `studyNotes_${planId}`;
+    const savedNotes = JSON.parse(localStorage.getItem(notesKey) || "[]");
+    setNotes(savedNotes);
+  };
+
+  // Load study session on component mount
+  useEffect(() => {
+    loadStudySession();
+    loadNotes();
   }, [id]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentMessage.trim()) return;
+
+    const planId = String(id || "");
+    const userId = getCurrentUserId();
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -152,13 +234,14 @@ const StudyModule = () => {
 
     // ✅ fetch AI response
     try {
-      // Wysyłamy zapytanie do naszego backendu /api/chat
-      const res = await fetch("/api/chat.js", { // Zauważ .js, jeśli to lokalny plik API w /pages/api
+      const res = await fetch("http://localhost:5000/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          type: "chat", // Informujemy backend, że to zwykła rozmowa
+          type: "chat",
           message: userMessage.content,
+          userId: userId,
+          studyPlanId: planId
         }),
       });
 
@@ -175,12 +258,11 @@ const StudyModule = () => {
       };
       setMessages((prev) => [...prev, aiResponse]);
     } catch (err) {
-      console.error("Chat error:", err.stack);
-      // Możesz tu dodać wiadomość o błędzie dla użytkownika
+      console.error("Chat error:", err);
       const errorResponse: Message = {
           id: (Date.now() + 1).toString(),
           type: "ai",
-          content: "Sorry, I couldn't get a response. Please try again.",
+          content: "Sorry, I couldn't get a response. Please make sure the backend server is running on port 5000.",
           timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorResponse]);
@@ -262,6 +344,24 @@ const StudyModule = () => {
   
       if (newContent) {
         setGeneratedContent((prev) => [...prev, newContent]);
+        
+        // Save generated content to database
+        try {
+          await fetch("http://localhost:5000/generated-content", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contentId: newContent.id,
+              userId: getCurrentUserId(),
+              studyPlanId: String(id || ""),
+              type: newContent.type,
+              title: newContent.title,
+              data: newContent.data
+            }),
+          });
+        } catch (error) {
+          console.error("Error saving generated content:", error);
+        }
       }
   
       const aiResponse: Message = {
@@ -295,9 +395,164 @@ const StudyModule = () => {
     setSelectedMessageIds([]);
     setCurrentActionType(null);
   };
+
+  // Handle AI message actions
+  const handleAIMessageAction = async (messageId: string, action: "tell-more" | "elaborate" | "regenerate" | "add-to-notes") => {
+    const message = messages.find(msg => msg.id === messageId);
+    if (!message || message.type !== "ai") return;
+
+    setProcessingMessageId(messageId);
+    const planId = String(id || "");
+    const userId = getCurrentUserId();
+
+    let prompt = "";
+    switch (action) {
+      case "tell-more":
+        prompt = `Please provide more detailed information about: ${message.content}`;
+        break;
+      case "elaborate":
+        prompt = `Please elaborate and expand on this topic: ${message.content}`;
+        break;
+      case "regenerate":
+        prompt = `Please provide a fresh perspective on this topic: ${message.content}`;
+        break;
+      case "add-to-notes":
+        // Add to notes functionality - save to localStorage for now
+        const notesKey = `studyNotes_${planId}`;
+        const existingNotes = JSON.parse(localStorage.getItem(notesKey) || "[]");
+        const newNote = {
+          id: Date.now().toString(),
+          content: message.content,
+          timestamp: new Date().toISOString(),
+          source: "AI Response"
+        };
+        existingNotes.push(newNote);
+        localStorage.setItem(notesKey, JSON.stringify(existingNotes));
+        
+        // Refresh notes display
+        loadNotes();
+        
+        // Show success message
+        const successMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          type: "ai",
+          content: "✅ Added to your notes! You can view all your notes in the 'Your Notes' section.",
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, successMessage]);
+        setProcessingMessageId(null);
+        return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:5000/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "chat",
+          message: prompt,
+          userId: userId,
+          studyPlanId: planId
+        }),
+      });
+
+      const data = await res.json();
+      if (res.status !== 200) {
+          throw new Error(data.error || "Something went wrong");
+      }
+
+      const aiResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        type: "ai",
+        content: data.reply,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, aiResponse]);
+    } catch (err) {
+      console.error("AI action error:", err);
+      const errorResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          type: "ai",
+          content: "Sorry, I couldn't process that request. Please try again.",
+          timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorResponse]);
+    } finally {
+      setProcessingMessageId(null);
+    }
+  };
   
-  const removeContent = (contentId: string) => {
+  const removeContent = async (contentId: string) => {
     setGeneratedContent(prev => prev.filter(content => content.id !== contentId));
+    
+    // Delete from database
+    try {
+      await fetch(`http://localhost:5000/generated-content/${contentId}/${getCurrentUserId()}`, {
+        method: "DELETE"
+      });
+    } catch (error) {
+      console.error("Error deleting generated content:", error);
+    }
+  };
+
+  const removeNote = (noteId: string) => {
+    const planId = String(id || "");
+    const notesKey = `studyNotes_${planId}`;
+    const updatedNotes = notes.filter(note => note.id !== noteId);
+    localStorage.setItem(notesKey, JSON.stringify(updatedNotes));
+    setNotes(updatedNotes);
+  };
+
+  // Generate progress test
+  const generateProgressTest = async () => {
+    const planId = String(id || "");
+    const userId = getCurrentUserId();
+    
+    try {
+      const res = await fetch("http://localhost:5000/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "review",
+          message: `Create a comprehensive test with 10 challenging multiple-choice questions about this topic. Make sure the questions test deep understanding and application of concepts.`,
+          userId: userId,
+          studyPlanId: planId
+        }),
+      });
+
+      const data = await res.json();
+      if (res.status !== 200) {
+        throw new Error(data.error || "Something went wrong");
+      }
+
+      const questions = JSON.parse(data.reply);
+      setProgressTest(questions);
+      setCurrentTestQuestion(0);
+      setTestAnswers(new Array(questions.length).fill(-1));
+      setTestCompleted(false);
+    } catch (err) {
+      console.error("Error generating progress test:", err);
+    }
+  };
+
+  // Handle test answer selection
+  const handleTestAnswer = (answerIndex: number) => {
+    const newAnswers = [...testAnswers];
+    newAnswers[currentTestQuestion] = answerIndex;
+    setTestAnswers(newAnswers);
+  };
+
+  // Submit test
+  const submitTest = () => {
+    setTestCompleted(true);
+  };
+
+  // Reset test
+  const resetTest = () => {
+    setProgressTest([]);
+    setCurrentTestQuestion(0);
+    setTestAnswers([]);
+    setTestCompleted(false);
   };
 
   const openPopout = (contentId: string) => {
@@ -319,7 +574,7 @@ const StudyModule = () => {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center space-x-2 text-muted-foreground hover:text-foreground">
             <ArrowLeft className="h-5 w-5" />
-            <span>Back to Dashboard</span>
+            <span>{t('studyModule.backToDashboard')}</span>
           </Link>
           
           <Link to="/" className="flex items-center space-x-2">
@@ -339,29 +594,33 @@ const StudyModule = () => {
               try {
                 const plans = JSON.parse(localStorage.getItem("studyPlans") || "[]");
                 const plan = plans.find((p: any) => String(p.id) === String(id));
-                return plan?.title || "Study Module";
+                return plan?.title || t('studyModule.studyModule');
               } catch {
-                return "Study Module";
+                return t('studyModule.studyModule');
               }
             })()}</h1>
             <p className="text-muted-foreground">{(() => {
               try {
                 const plans = JSON.parse(localStorage.getItem("studyPlans") || "[]");
                 const plan = plans.find((p: any) => String(p.id) === String(id));
-                return plan?.description || "Your personalized learning goals";
+                return plan?.description || t('studyModule.personalizedLearningGoals');
               } catch {
-                return "Your personalized learning goals";
+                return t('studyModule.personalizedLearningGoals');
               }
             })()}</p>
             
             {/* Study Mode Selector */}
-            <div className="flex flex-wrap gap-2 mt-4">
+            <div className="grid grid-cols-3 gap-3 mt-6">
               {studyModes.map((mode) => (
                 <Button
                   key={mode.id}
                   variant={mode.active ? "default" : "outline"}
                   onClick={() => setActiveMode(mode.id as any)}
-                  className={mode.active ? "bg-primary text-white" : ""}
+                  className={`h-12 text-sm font-medium transition-all duration-200 ${
+                    mode.active 
+                      ? "bg-gradient-hero text-white shadow-lg hover:shadow-xl" 
+                      : "bg-white hover:bg-muted border-2 hover:border-primary/30"
+                  }`}
                 >
                   {mode.label}
                 </Button>
@@ -372,13 +631,215 @@ const StudyModule = () => {
 
         {/* Main Content */}
         <div className="flex-1 flex">
-          {/* Chat Area */}  
+          {/* Chat Area or Notes Area */}  
           <div className="flex-1 flex flex-col">
-            {/* Generated Content Tiles */}
-            {generatedContent.length > 0 && (
+            {/* Notes Section - Show when in "Your Notes" mode */}
+            {activeMode === "guided" && (
               <div className="border-b border-border bg-muted/20 p-4">
                 <div className="max-w-4xl mx-auto">
-                  <h3 className="text-sm font-medium text-muted-foreground mb-3">Generated Content</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground mb-3">{t('studyModule.yourSavedNotes')}</h3>
+                  {notes.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <StickyNote className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                      <p>{t('studyModule.noNotesSaved')}</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {notes.map((note) => (
+                        <div
+                          key={note.id}
+                          className="group relative bg-white border border-border rounded-lg p-4 hover:shadow-md transition-shadow"
+                        >
+                          <div className="flex items-start gap-3">
+                            <MapPin className="h-4 w-4 text-red-500 mt-1 flex-shrink-0" />
+                            <div className="flex-1">
+                              <div className="prose prose-sm dark:prose-invert max-w-none">
+                                <ReactMarkdown
+                                  remarkPlugins={[remarkGfm]}
+                                  rehypePlugins={[rehypeHighlight]}
+                                >
+                                  {note.content}
+                                </ReactMarkdown>
+                              </div>
+                              <p className="text-xs text-muted-foreground mt-2">
+                                {new Date(note.timestamp).toLocaleString()} • {note.source}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => removeNote(note.id)}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity bg-destructive text-destructive-foreground rounded-full p-1"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Progress Section - Show when in "Your Progress" mode */}
+            {activeMode === "review" && (
+              <div className="border-b border-border bg-muted/20 p-4">
+                <div className="max-w-4xl mx-auto">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-3">{t('studyModule.yourProgressTest')}</h3>
+                  {progressTest.length === 0 ? (
+                    <div className="text-center py-8">
+                      <div className="mb-4">
+                        <RotateCcw className="h-16 w-16 mx-auto text-primary/50 mb-4" />
+                        <h4 className="text-lg font-semibold mb-2">{t('studyModule.readyToTestKnowledge')}</h4>
+                        <p className="text-muted-foreground mb-6">
+                          {t('studyModule.testDescription')}
+                        </p>
+                        <Button 
+                          onClick={generateProgressTest}
+                          className="bg-gradient-hero hover:opacity-90 text-white px-8 py-3"
+                        >
+                          <RotateCcw className="h-4 w-4 mr-2" />
+                          {t('studyModule.startProgressTest')}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : !testCompleted ? (
+                    <div className="space-y-6">
+                      {/* Progress Bar */}
+                      <div className="w-full bg-muted rounded-full h-2">
+                        <div 
+                          className="bg-gradient-hero h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${((currentTestQuestion + 1) / progressTest.length) * 100}%` }}
+                        ></div>
+                      </div>
+                      
+                      {/* Question Counter */}
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium">
+                          {t('studyModule.question')} {currentTestQuestion + 1} {t('studyModule.of')} {progressTest.length}
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          {Math.round(((currentTestQuestion + 1) / progressTest.length) * 100)}% {t('studyModule.complete')}
+                        </span>
+                      </div>
+
+                      {/* Current Question */}
+                      <div className="bg-white border border-border rounded-lg p-6">
+                        <h4 className="text-lg font-semibold mb-4">
+                          {progressTest[currentTestQuestion]?.question}
+                        </h4>
+                        <div className="space-y-3">
+                          {progressTest[currentTestQuestion]?.options.map((option, index) => (
+                            <button
+                              key={index}
+                              onClick={() => handleTestAnswer(index)}
+                              className={`w-full text-left p-4 rounded-lg border-2 transition-all duration-200 ${
+                                testAnswers[currentTestQuestion] === index
+                                  ? "border-primary bg-primary/10 text-primary"
+                                  : "border-border hover:border-primary/50 hover:bg-muted/50"
+                              }`}
+                            >
+                              <span className="font-medium mr-3">{String.fromCharCode(65 + index)}.</span>
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Navigation */}
+                      <div className="flex justify-between">
+                        <Button
+                          variant="outline"
+                          onClick={() => setCurrentTestQuestion(Math.max(0, currentTestQuestion - 1))}
+                          disabled={currentTestQuestion === 0}
+                        >
+                          {t('studyModule.previous')}
+                        </Button>
+                        <div className="flex gap-2">
+                          {currentTestQuestion === progressTest.length - 1 ? (
+                            <Button
+                              onClick={submitTest}
+                              className="bg-gradient-hero hover:opacity-90 text-white"
+                              disabled={testAnswers.some(answer => answer === -1)}
+                            >
+                              {t('studyModule.submitTest')}
+                            </Button>
+                          ) : (
+                            <Button
+                              onClick={() => setCurrentTestQuestion(Math.min(progressTest.length - 1, currentTestQuestion + 1))}
+                              disabled={testAnswers[currentTestQuestion] === -1}
+                            >
+                              {t('studyModule.next')}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Test Results */
+                    <div className="space-y-6">
+                      <div className="text-center">
+                        <div className="w-20 h-20 mx-auto mb-4 bg-gradient-hero rounded-full flex items-center justify-center">
+                          <span className="text-2xl font-bold text-white">
+                            {Math.round((testAnswers.filter((answer, index) => answer === progressTest[index]?.correctAnswer).length / progressTest.length) * 100)}%
+                          </span>
+                        </div>
+                        <h4 className="text-xl font-semibold mb-2">{t('studyModule.testCompleted')}</h4>
+                        <p className="text-muted-foreground">
+                          {t('studyModule.youScored')} {testAnswers.filter((answer, index) => answer === progressTest[index]?.correctAnswer).length} {t('studyModule.outOf')} {progressTest.length} {t('studyModule.questionsCorrectly')}
+                        </p>
+                      </div>
+
+                      {/* Detailed Results */}
+                      <div className="space-y-4">
+                        {progressTest.map((question, index) => {
+                          const isCorrect = testAnswers[index] === question.correctAnswer;
+                          return (
+                            <div key={index} className={`p-4 rounded-lg border-2 ${isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
+                              <div className="flex items-start gap-3">
+                                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold ${
+                                  isCorrect ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                                }`}>
+                                  {isCorrect ? '✓' : '✗'}
+                                </div>
+                                <div className="flex-1">
+                                  <p className="font-medium mb-2">{question.question}</p>
+                                  <p className="text-sm text-muted-foreground mb-2">
+                                    {t('studyModule.yourAnswer')} {question.options[testAnswers[index]]}
+                                  </p>
+                                  {!isCorrect && (
+                                    <p className="text-sm text-green-600 font-medium">
+                                      {t('studyModule.correctAnswer')} {question.options[question.correctAnswer]}
+                                    </p>
+                                  )}
+                                  <p className="text-sm text-muted-foreground mt-2">
+                                    <strong>{t('studyModule.explanation')}</strong> {question.explanation}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <div className="text-center">
+                        <Button onClick={resetTest} variant="outline" className="mr-3">
+                          {t('studyModule.takeAnotherTest')}
+                        </Button>
+                        <Button onClick={resetTest} className="bg-gradient-hero hover:opacity-90 text-white">
+                          {t('studyModule.backToStudy')}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Generated Content Tiles - Show when not in notes or progress mode */}
+            {activeMode !== "guided" && activeMode !== "review" && generatedContent.length > 0 && (
+              <div className="border-b border-border bg-muted/20 p-4">
+                <div className="max-w-4xl mx-auto">
+                  <h3 className="text-sm font-medium text-muted-foreground mb-3">{t('studyModule.generatedContent')}</h3>
                   <div className="flex flex-wrap gap-2">
                     {generatedContent.map((content) => (
                       <div
@@ -408,9 +869,16 @@ const StudyModule = () => {
               </div>
             )}
             
-            <ScrollArea className="flex-1 p-4">
-              <div className="max-w-4xl mx-auto space-y-4">
-                {messages.map((message) => {
+            {/* Chat Area - Show when not in notes or progress mode */}
+            {activeMode !== "guided" && activeMode !== "review" && (
+              <ScrollArea className="flex-1 p-4">
+                <div className="max-w-4xl mx-auto space-y-4">
+                  {isLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="text-muted-foreground">{t('studyModule.loadingConversation')}</div>
+                    </div>
+                  ) : (
+                    messages.map((message) => {
                   const isSelected = isSelectingMessages && message.type === "ai" && selectedMessageIds.includes(message.id);
                   const isSelectableAiMessage = isSelectingMessages && message.type === "ai";
 
@@ -459,23 +927,100 @@ const StudyModule = () => {
                             }`}>
                               {message.timestamp.toLocaleTimeString()}
                             </p>
+                            
+                            {/* AI Message Action Tiles */}
+                            {message.type === "ai" && (
+                              <div className="flex gap-2 mt-3 justify-between">
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleAIMessageAction(message.id, "tell-more")}
+                                    disabled={processingMessageId === message.id}
+                                    className="text-xs h-7 px-2 bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700"
+                                  >
+                                    {processingMessageId === message.id ? (
+                                      <RefreshCw className="h-3 w-3 animate-spin" />
+                                    ) : (
+                                      <>
+                                        <Plus className="h-3 w-3 mr-1" />
+                                        {t('studyModule.tellMeMore')}
+                                      </>
+                                    )}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleAIMessageAction(message.id, "elaborate")}
+                                    disabled={processingMessageId === message.id}
+                                    className="text-xs h-7 px-2 bg-green-50 hover:bg-green-100 border-green-200 text-green-700"
+                                  >
+                                    {processingMessageId === message.id ? (
+                                      <RefreshCw className="h-3 w-3 animate-spin" />
+                                    ) : (
+                                      <>
+                                        <Expand className="h-3 w-3 mr-1" />
+                                        {t('studyModule.elaborate')}
+                                      </>
+                                    )}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleAIMessageAction(message.id, "regenerate")}
+                                    disabled={processingMessageId === message.id}
+                                    className="text-xs h-7 px-2 bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-700"
+                                  >
+                                    {processingMessageId === message.id ? (
+                                      <RefreshCw className="h-3 w-3 animate-spin" />
+                                    ) : (
+                                      <>
+                                        <RefreshCw className="h-3 w-3 mr-1" />
+                                        {t('studyModule.regenerate')}
+                                      </>
+                                    )}
+                                  </Button>
+                                </div>
+                                
+                                {/* Add to Notes - smaller tile in bottom right */}
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleAIMessageAction(message.id, "add-to-notes")}
+                                  disabled={processingMessageId === message.id}
+                                  className="text-xs h-6 px-2 bg-orange-50 hover:bg-orange-100 border-orange-200 text-orange-700"
+                                >
+                                  {processingMessageId === message.id ? (
+                                    <RefreshCw className="h-3 w-3 animate-spin" />
+                                  ) : (
+                                    <>
+                                      <StickyNote className="h-3 w-3 mr-1" />
+                                      {t('studyModule.addToNotes')}
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                            )}
                           </CardContent>
                         </Card>
                       </div>
                     </div>
                   );
-                })}
-              </div>
-            </ScrollArea>
+                })
+                )}
+                </div>
+              </ScrollArea>
+            )}
 
-            {/* Input Area (zmieniony o tryb wyboru) */}
-            <div className="border-t border-border bg-muted/30">
-              <div className="max-w-4xl mx-auto p-4">
+            {/* Input Area - Show when not in notes or progress mode */}
+            {activeMode !== "guided" && activeMode !== "review" && (
+              <div className="border-t border-border bg-muted/30">
+                <div className="max-w-4xl mx-auto p-4">
                 {isSelectingMessages ? (
                   <div className="flex flex-col gap-2">
                     <p className="text-sm text-muted-foreground">
-                      Select AI messages to generate {currentActionType} from.
-                      ({selectedMessageIds.length} selected)
+                      {t('studyModule.selectAIMessages')} {currentActionType} {t('studyModule.from')}
+                      ({selectedMessageIds.length} {t('studyModule.selected')})
                     </p>
                     <div className="flex gap-2">
                       <Button
@@ -483,14 +1028,14 @@ const StudyModule = () => {
                         disabled={selectedMessageIds.length === 0}
                         className="flex-1 bg-primary hover:bg-primary/90"
                       >
-                        Generate {currentActionType}
+                        {t('studyModule.generate')} {currentActionType}
                       </Button>
                       <Button
                         onClick={handleCancelSelection}
                         variant="outline"
                         className="flex-1"
                       >
-                        Cancel
+                        {t('studyModule.cancel')}
                       </Button>
                     </div>
                   </div>
@@ -498,7 +1043,7 @@ const StudyModule = () => {
                   <>
                     <form onSubmit={handleSendMessage} className="flex gap-2">
                       <Input
-                        placeholder="Ask Tutor a Question"
+                        placeholder={t('studyModule.askTutorQuestion')}
                         value={currentMessage}
                         onChange={(e) => setCurrentMessage(e.target.value)}
                         className="flex-1"
@@ -525,8 +1070,9 @@ const StudyModule = () => {
                     </div>
                   </>
                 )}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
@@ -534,7 +1080,7 @@ const StudyModule = () => {
         <div className="border-t border-border bg-white p-4">
           <div className="max-w-4xl mx-auto flex justify-center">
             <Button className="bg-primary hover:bg-primary/90 px-8">
-              Finish
+              {t('studyModule.finish')}
             </Button>
           </div>
         </div>

@@ -85,7 +85,7 @@ const Preferences = () => {
               <BookOpen className="h-10 w-10 text-white" />
               <span className="text-3xl font-bold text-white">Optedu AI</span>
             </Link>
-            <p className="text-white/80">Let's personalize your learning experience</p>
+            <p className="text-white/80">{t('preferences.letsPersonalizeExperience')}</p>
           </div>
 
           <Card className="shadow-glow border-white/10 bg-white/95 backdrop-blur-sm">
@@ -98,7 +98,7 @@ const Preferences = () => {
             <CardContent className="max-h-[70vh] overflow-y-auto">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
-                  <Label htmlFor="age" className="text-base font-medium">How old are you?</Label>
+                  <Label htmlFor="age" className="text-base font-medium">{t('preferences.howOldAreYou')}</Label>
                   <Input
                     id="age"
                     placeholder="e.g. 19"
@@ -110,7 +110,7 @@ const Preferences = () => {
                 </div>
                 
                 <div>
-                  <Label htmlFor="interests" className="text-base font-medium">What are you good in?</Label>
+                  <Label htmlFor="interests" className="text-base font-medium">{t('preferences.whatAreYouGoodIn')}</Label>
                   <Input
                     id="interests"
                     placeholder="e.g. Biology, Software Engineering, Pottery"

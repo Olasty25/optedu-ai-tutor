@@ -51,7 +51,7 @@ const Register = () => {
             <BookOpen className="h-10 w-10 text-white" />
             <span className="text-3xl font-bold text-white">Optedu AI</span>
           </Link>
-          <p className="text-white/80">Start your AI-powered learning journey</p>
+          <p className="text-white/80">{t('register.startYourLearningJourney')}</p>
         </div>
 
         <Card className="shadow-glow border-white/10 bg-white/95 backdrop-blur-sm">
