@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: optedu-backend
+    env: node
+    plan: free
+    region: frankfurt
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 18
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: DB_PATH
+        value: /tmp/messages.db
+      - key: UPLOAD_DIR
+        value: /tmp/uploads
+    healthCheckPath: /
+

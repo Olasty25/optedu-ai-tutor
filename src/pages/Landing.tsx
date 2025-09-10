@@ -59,7 +59,7 @@ const Landing = () => {
       <Navigation />
       
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4 relative overflow-hidden">
+      <section className="pt-20 md:pt-32 pb-12 md:pb-20 px-4 relative overflow-hidden">
         {/* Video Background */}
         <video
           className="absolute inset-0 w-full h-full object-cover"
@@ -72,24 +72,24 @@ const Landing = () => {
         <div className="absolute inset-0 bg-black/40" />
         <div className="container mx-auto text-center relative z-10">
           <div className="max-w-4xl mx-auto">
-            <div className="hero-text-backdrop">
-              <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-white hero-title-glow">
+            <div className="hero-text-backdrop px-4 md:px-8">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold mb-4 md:mb-6 leading-tight text-white hero-title-glow">
                 {t('landing.heroTitle')}{" "}
                 <span className="bg-gradient-hero bg-clip-text text-transparent hero-highlight-glow">
                   {t('landing.heroHighlight')}
                 </span>
               </h1>
             </div>
-            <p className="text-xl md:text-2xl text-white/95 mb-8 leading-relaxed">
+            <p className="text-lg sm:text-xl md:text-2xl text-white/95 mb-6 md:mb-8 leading-relaxed px-4">
               {t('landing.heroSubtitle')}
             </p>
             <Link to="/register">
               <Button 
                 size="lg" 
-                className="bg-gradient-hero hover:opacity-90 transition-opacity text-lg px-8 py-6 rounded-xl shadow-glow"
+                className="bg-gradient-hero hover:opacity-90 transition-opacity text-base md:text-lg px-6 md:px-8 py-4 md:py-6 rounded-xl shadow-glow w-full sm:w-auto"
               >
                 {t('landing.tryButton')}
-                <ArrowRight className="ml-2 h-5 w-5" />
+                <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5" />
               </Button>
             </Link>
           </div>
@@ -97,14 +97,14 @@ const Landing = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4 bg-muted/30">
+      <section className="py-12 md:py-20 px-4 bg-muted/30">
         <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">{t('landing.featuresTitle')}</h2>
-            <p className="text-xl text-muted-foreground">{t('landing.featuresSubtitle')}</p>
+          <div className="text-center mb-12 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">{t('landing.featuresTitle')}</h2>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">{t('landing.featuresSubtitle')}</p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             <FeatureCard
               icon={Brain}
               title={t('landing.feature1Title')}
@@ -125,39 +125,39 @@ const Landing = () => {
       </section>
 
       {/* Innovation Section */}
-      <section className="py-20 px-4">
+      <section className="py-12 md:py-20 px-4">
         <div className="container mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">{t('landing.innovationTitle')}</h2>
+          <div className="text-center mb-12 md:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">{t('landing.innovationTitle')}</h2>
           </div>
           
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
             <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-accent flex items-center justify-center">
-                <Brain className="h-8 w-8 text-white" />
+              <div className="w-14 h-14 md:w-16 md:h-16 mx-auto mb-4 md:mb-6 rounded-full bg-gradient-accent flex items-center justify-center">
+                <Brain className="h-7 w-7 md:h-8 md:w-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">{t('landing.innovation1Title')}</h3>
-              <p className="text-muted-foreground">
+              <h3 className="text-lg md:text-xl font-semibold mb-3">{t('landing.innovation1Title')}</h3>
+              <p className="text-muted-foreground text-sm md:text-base">
                 {t('landing.innovation1Description')}
               </p>
             </div>
             
             <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-accent flex items-center justify-center">
-                <Users className="h-8 w-8 text-white" />
+              <div className="w-14 h-14 md:w-16 md:h-16 mx-auto mb-4 md:mb-6 rounded-full bg-gradient-accent flex items-center justify-center">
+                <Users className="h-7 w-7 md:h-8 md:w-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">{t('landing.innovation2Title')}</h3>
-              <p className="text-muted-foreground">
+              <h3 className="text-lg md:text-xl font-semibold mb-3">{t('landing.innovation2Title')}</h3>
+              <p className="text-muted-foreground text-sm md:text-base">
                 {t('landing.innovation2Description')}
               </p>
             </div>
             
             <div className="text-center">
-              <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-gradient-accent flex items-center justify-center">
-                <Award className="h-8 w-8 text-white" />
+              <div className="w-14 h-14 md:w-16 md:h-16 mx-auto mb-4 md:mb-6 rounded-full bg-gradient-accent flex items-center justify-center">
+                <Award className="h-7 w-7 md:h-8 md:w-8 text-white" />
               </div>
-              <h3 className="text-xl font-semibold mb-3">{t('landing.innovation3Title')}</h3>
-              <p className="text-muted-foreground">
+              <h3 className="text-lg md:text-xl font-semibold mb-3">{t('landing.innovation3Title')}</h3>
+              <p className="text-muted-foreground text-sm md:text-base">
                 {t('landing.innovation3Description')}
               </p>
             </div>
@@ -166,24 +166,24 @@ const Landing = () => {
       </section>
 
       {/* Beta Testing Section */}
-      <section className="py-20 px-4 bg-gradient-to-br from-accent via-primary to-accent/80 text-white relative overflow-hidden">
+      <section className="py-12 md:py-20 px-4 bg-gradient-to-br from-accent via-primary to-accent/80 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="container mx-auto text-center relative z-10">
           <div className="max-w-3xl mx-auto">
-            <div className="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium mb-6">
-              <Zap className="h-4 w-4 mr-2" />
+            <div className="inline-flex items-center px-3 md:px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-xs md:text-sm font-medium mb-4 md:mb-6">
+              <Zap className="h-3 w-3 md:h-4 md:w-4 mr-2" />
               {t('landing.betaLabel')}
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 md:mb-6 leading-tight">
               {t('landing.betaTitle')}
             </h2>
-            <p className="text-xl mb-8 text-white/90 leading-relaxed">
-              {t('landing.betaSlots', { count: betaSlotsRemaining })}
+            <p className="text-lg md:text-xl mb-6 md:mb-8 text-white/90 leading-relaxed">
+              {t('landing.betaSubtitle', { count: betaSlotsRemaining })}
             </p>
-            <div className="flex items-center justify-center mb-8">
-              <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-lg px-6 py-3">
-                <Users className="h-5 w-5 mr-2" />
-                <span className="font-semibold">
+            <div className="flex items-center justify-center mb-6 md:mb-8">
+              <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-lg px-4 md:px-6 py-2 md:py-3">
+                <Users className="h-4 w-4 md:h-5 md:w-5 mr-2" />
+                <span className="font-semibold text-sm md:text-base">
                   {betaSlotsRemaining} {betaSlotsRemaining === 1 ? 'slot' : 'slots'} remaining
                 </span>
               </div>
@@ -194,7 +194,7 @@ const Landing = () => {
                 if (!betaEmail || betaSlotsRemaining <= 0) return;
                 handleBetaSignup(betaEmail);
               }}
-              className="max-w-md mx-auto flex gap-3"
+              className="max-w-md mx-auto flex flex-col sm:flex-row gap-3"
             >
               <input
                 type="email"
@@ -202,28 +202,28 @@ const Landing = () => {
                 onChange={(e) => setBetaEmail(e.target.value)}
                 placeholder={t('landing.betaEmailPlaceholder')}
                 required
-                className="flex-1 px-4 py-3 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
+                className="flex-1 px-4 py-3 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 text-sm md:text-base"
               />
               <Button
                 type="submit"
                 size="lg"
-                className="bg-white text-primary hover:bg-white/90 font-semibold px-6"
+                className="bg-white text-primary hover:bg-white/90 font-semibold px-4 md:px-6 py-3 w-full sm:w-auto"
                 disabled={betaSlotsRemaining <= 0}
               >
                 {betaSlotsRemaining <= 0 ? 'Beta Full' : t('landing.betaJoinButton')}
               </Button>
             </form>
             {betaMsg && (
-              <p className="text-sm text-white mt-3 flex items-center justify-center">
-                <CheckCircle className="h-4 w-4 mr-2" /> {betaMsg}
+              <p className="text-xs md:text-sm text-white mt-3 flex items-center justify-center">
+                <CheckCircle className="h-3 w-3 md:h-4 md:w-4 mr-2" /> {betaMsg}
               </p>
             )}
             {betaSlotsRemaining <= 0 && (
-              <p className="text-sm text-yellow-300 mt-3 flex items-center justify-center">
-                <Users className="h-4 w-4 mr-2" /> Beta testing is now full! Thank you for your interest.
+              <p className="text-xs md:text-sm text-yellow-300 mt-3 flex items-center justify-center">
+                <Users className="h-3 w-3 md:h-4 md:w-4 mr-2" /> Beta testing is now full! Thank you for your interest.
               </p>
             )}
-            <p className="text-sm text-white/70 mt-4">
+            <p className="text-xs md:text-sm text-white/70 mt-4">
               {t('landing.betaDisclaimer')}
             </p>
             {/* Reset button for testing - remove in production */}
@@ -240,7 +240,7 @@ const Landing = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-gradient-hero text-white relative overflow-hidden">
+      <section className="py-12 md:py-20 px-4 bg-gradient-hero text-white relative overflow-hidden">
         {/* Video Background */}
         <video
           className="absolute inset-0 w-full h-full object-cover"
@@ -252,20 +252,20 @@ const Landing = () => {
         />
         <div className="absolute inset-0 bg-black/50" />
         <div className="container mx-auto text-center relative z-10">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
             {t('landing.ctaTitle')}
           </h2>
-          <p className="text-xl mb-8 text-white/90">
+          <p className="text-lg md:text-xl mb-6 md:mb-8 text-white/90">
             {t('landing.ctaSubtitle')}
           </p>
           <Link to="/register">
             <Button 
               size="lg" 
               variant="secondary"
-              className="text-lg px-8 py-6 rounded-xl bg-white text-primary hover:bg-white/90"
+              className="text-base md:text-lg px-6 md:px-8 py-4 md:py-6 rounded-xl bg-white text-primary hover:bg-white/90 w-full sm:w-auto"
             >
               {t('landing.ctaButton')}
-              <ArrowRight className="ml-2 h-5 w-5" />
+              <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5" />
             </Button>
           </Link>
         </div>

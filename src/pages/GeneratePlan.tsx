@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileUploadPopout } from "@/components/ui/file-upload-popout";
 import { SourcePreviewTiles, SourceItem } from "@/components/ui/source-preview-tiles";
-import { BookOpen, ArrowLeft, Wand2, Upload, Settings, AlertCircle } from "lucide-react";
+import { BookOpen, ArrowLeft, Wand2, Upload, Settings, AlertCircle, Lightbulb, Clock, TrendingUp, Globe, Atom, Heart } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -26,6 +26,7 @@ const GeneratePlan = () => {
   const [sources, setSources] = useState<SourceItem[]>([]);
   const [studyPlansCount, setStudyPlansCount] = useState(0);
   const [limitReached, setLimitReached] = useState(false);
+  const [showExamples, setShowExamples] = useState(true);
   
   // Additional customization fields
   // Temporary goals inputs
@@ -33,12 +34,88 @@ const GeneratePlan = () => {
   const [goalWhy, setGoalWhy] = useState("");
   const [goalWhen, setGoalWhen] = useState("");
 
+  // Example topics for inspiration
+  const exampleTopics = [
+    {
+      id: "french-revolution",
+      title: "French Revolution",
+      description: "Learn about the causes, key events, and consequences of the French Revolution",
+      category: "History",
+      icon: Globe,
+      color: "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+    },
+    {
+      id: "etf-investments",
+      title: "ETF Investments Basics",
+      description: "Understand exchange-traded funds, how they work, and investment strategies",
+      category: "Finance",
+      icon: TrendingUp,
+      color: "bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+    },
+    {
+      id: "quantum-physics",
+      title: "Quantum Physics Fundamentals",
+      description: "Explore quantum mechanics, wave-particle duality, and quantum computing basics",
+      category: "Science",
+      icon: Atom,
+      color: "bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100"
+    },
+    {
+      id: "human-anatomy",
+      title: "Human Anatomy & Physiology",
+      description: "Study the structure and function of major body systems and organs",
+      category: "Biology",
+      icon: Heart,
+      color: "bg-red-50 border-red-200 text-red-700 hover:bg-red-100"
+    },
+    {
+      id: "machine-learning",
+      title: "Machine Learning Basics",
+      description: "Introduction to algorithms, neural networks, and AI applications",
+      category: "Technology",
+      icon: Lightbulb,
+      color: "bg-yellow-50 border-yellow-200 text-yellow-700 hover:bg-yellow-100"
+    },
+    {
+      id: "world-war-2",
+      title: "World War II",
+      description: "Comprehensive study of the war's causes, major battles, and global impact",
+      category: "History",
+      icon: Clock,
+      color: "bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
+    }
+  ];
+
+  const handleExampleClick = (example: typeof exampleTopics[0]) => {
+    setTitle(example.title);
+    setDescription(example.description);
+    setShowExamples(false);
+    
+    // Show a brief success message
+    setTimeout(() => {
+      // You could add a toast notification here if you have a toast system
+      console.log(`Selected example: ${example.title}`);
+    }, 100);
+  };
+
+  // Hide examples when user starts typing their own content
+  useEffect(() => {
+    if (title.trim() || description.trim()) {
+      setShowExamples(false);
+    }
+  }, [title, description]);
+
   // Check study plans limit on component mount
   useEffect(() => {
     const checkLimits = async () => {
       if (!isPro) {
         try {
-          const userId = "user_" + Date.now(); // In real app, get from auth context
+          // Use the same stable user ID approach as other pages
+          let userId = localStorage.getItem("currentUserId");
+          if (!userId) {
+            userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            localStorage.setItem("currentUserId", userId);
+          }
           const response = await fetch(`http://localhost:5000/study-plans/count/${userId}`);
           if (response.ok) {
             const data = await response.json();
@@ -371,6 +448,65 @@ const GeneratePlan = () => {
                     className="mt-2 min-h-[120px]"
                     required
                   />
+                </div>
+
+                {/* Example Topics Section */}
+                <div className="space-y-4 p-4 bg-gradient-to-r from-primary/5 to-accent/5 rounded-lg border border-primary/20">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <Lightbulb className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-primary">Need inspiration?</h3>
+                        <p className="text-sm text-muted-foreground">Try one of these popular topics to get started</p>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowExamples(!showExamples)}
+                      className="flex items-center gap-2 border-primary/30 hover:bg-primary/10"
+                    >
+                      <Lightbulb className="h-4 w-4" />
+                      {showExamples ? 'Hide Examples' : 'Show Examples'}
+                    </Button>
+                  </div>
+
+                  {showExamples && (
+                    <div className="space-y-3">
+                      <div className="text-center py-2">
+                        <p className="text-sm text-muted-foreground">Click any topic to auto-fill the form</p>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {exampleTopics.map((example) => {
+                          const IconComponent = example.icon;
+                          return (
+                            <button
+                              key={example.id}
+                              type="button"
+                              onClick={() => handleExampleClick(example)}
+                              className={`group p-4 rounded-lg border-2 text-left transition-all duration-200 hover:shadow-lg hover:scale-[1.02] ${example.color}`}
+                            >
+                              <div className="flex items-start gap-3">
+                                <div className="flex-shrink-0 p-2 bg-white/50 rounded-lg group-hover:bg-white/80 transition-colors">
+                                  <IconComponent className="h-5 w-5" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-semibold text-sm mb-1 group-hover:text-opacity-90">{example.title}</h4>
+                                  <p className="text-xs opacity-80 line-clamp-2 mb-2">{example.description}</p>
+                                  <span className="inline-block text-xs px-2 py-1 bg-white/60 rounded-full font-medium">
+                                    {example.category}
+                                  </span>
+                                </div>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="space-y-6">

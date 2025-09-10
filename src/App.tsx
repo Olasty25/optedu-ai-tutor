@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { LanguageSelector } from "@/components/ui/language-selector";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -14,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import GeneratePlan from "./pages/GeneratePlan";
 import StudyModule from "./pages/StudyModule";
 import Pricing from "./pages/Pricing";
+import OfficialPlans from "./pages/OfficialPlans";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -45,12 +45,12 @@ const App = () => (
               <Route path="/preferences" element={<RequireAuth><Preferences /></RequireAuth>} />
               <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
               <Route path="/generate-plan" element={<RequireAuth><GeneratePlan /></RequireAuth>} />
+              <Route path="/official-plans" element={<RequireAuth><OfficialPlans /></RequireAuth>} />
               <Route path="/pricing" element={<Pricing />} />
               <Route path="/study/:id" element={<RequireAuth><StudyModule /></RequireAuth>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
-            <LanguageSelector />
           </BrowserRouter>
         </AuthProvider>
       </TooltipProvider>

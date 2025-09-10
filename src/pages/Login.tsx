@@ -8,6 +8,7 @@ import { useState } from "react";
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { AuthDebug } from "@/components/ui/auth-debug";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -35,12 +36,50 @@ const Login = () => {
   const handleGoogleSignIn = async () => {
     setError(null);
     setIsLoading(true);
+    
+    // Test Firebase configuration before attempting sign-in
+    console.log('Testing Firebase configuration...');
+    console.log('Auth object:', auth);
+    console.log('Auth app:', auth.app);
+    console.log('Auth domain:', auth.app.options.authDomain);
+    
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      // Add additional scopes if needed
+      provider.addScope('email');
+      provider.addScope('profile');
+      
+      console.log('Attempting Google sign-in...');
+      const result = await signInWithPopup(auth, provider);
+      console.log('Google sign-in successful:', result.user);
       navigate("/dashboard");
     } catch (err: any) {
-      setError(err?.message ?? "Failed to sign in with Google");
+      console.error('Google sign-in error:', err);
+      console.error('Error code:', err.code);
+      console.error('Error message:', err.message);
+      
+      // Handle specific error cases
+      let errorMessage = "Failed to sign in with Google";
+      
+      if (err.code === 'auth/popup-closed-by-user') {
+        errorMessage = "Sign-in was cancelled. Please try again.";
+      } else if (err.code === 'auth/popup-blocked') {
+        errorMessage = "Popup was blocked by your browser. Please allow popups and try again.";
+      } else if (err.code === 'auth/network-request-failed') {
+        errorMessage = "Network error. Please check your internet connection and try again.";
+      } else if (err.code === 'auth/too-many-requests') {
+        errorMessage = "Too many failed attempts. Please try again later.";
+      } else if (err.code === 'auth/operation-not-allowed') {
+        errorMessage = "Google sign-in is not enabled. Please contact support.";
+      } else if (err.code === 'auth/unauthorized-domain') {
+        errorMessage = "This domain is not authorized. Please contact support.";
+      } else if (err.code === 'auth/invalid-api-key') {
+        errorMessage = "Invalid API key. Please check your Firebase configuration.";
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -152,6 +191,9 @@ const Login = () => {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Debug component - remove in production */}
+      <AuthDebug show={import.meta.env.DEV} />
     </div>
   );
 };

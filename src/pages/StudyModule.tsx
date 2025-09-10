@@ -31,6 +31,7 @@ import rehypeHighlight from "rehype-highlight";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { startStudySession, endStudySession, markPlanCompleted, getCurrentUserId as getTrackingUserId } from "@/lib/tracking";
 
 interface Message {
   id: string;
@@ -86,6 +87,7 @@ const StudyModule = () => {
   const [userMessageCount, setUserMessageCount] = useState(0);
   const [questionLimitReached, setQuestionLimitReached] = useState(false);
   const [lastAIMessageId, setLastAIMessageId] = useState<string | null>(null);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
   // Nowe stany do obsługi wyboru wiadomości
   const [isSelectingMessages, setIsSelectingMessages] = useState(false);
@@ -221,6 +223,20 @@ const StudyModule = () => {
     loadStudySession();
     loadNotes();
     checkQuestionLimit();
+    
+    // Start tracking study session
+    const planId = String(id || "");
+    if (planId) {
+      const sessionId = startStudySession(planId);
+      setCurrentSessionId(sessionId);
+    }
+    
+    // Cleanup function to end session when component unmounts
+    return () => {
+      if (currentSessionId) {
+        endStudySession(currentSessionId);
+      }
+    };
   }, [id]);
 
   // Check question limit for non-PRO users
@@ -1154,7 +1170,22 @@ const StudyModule = () => {
         {/* Bottom Actions */}
         <div className="border-t border-border bg-white p-4">
           <div className="max-w-4xl mx-auto flex justify-center">
-            <Button className="bg-primary hover:bg-primary/90 px-8">
+            <Button 
+              className="bg-primary hover:bg-primary/90 px-8"
+              onClick={() => {
+                // End current session
+                if (currentSessionId) {
+                  endStudySession(currentSessionId);
+                }
+                // Mark plan as completed
+                const planId = String(id || "");
+                if (planId) {
+                  markPlanCompleted(planId);
+                }
+                // Navigate back to dashboard
+                window.location.href = '/dashboard';
+              }}
+            >
               {t('studyModule.finish')}
             </Button>
           </div>

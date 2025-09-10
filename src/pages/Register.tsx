@@ -45,10 +45,36 @@ const Register = () => {
     setIsLoading(true);
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      // Add additional scopes if needed
+      provider.addScope('email');
+      provider.addScope('profile');
+      
+      const result = await signInWithPopup(auth, provider);
+      console.log('Google sign-up successful:', result.user);
       navigate("/preferences");
     } catch (err: any) {
-      setError(err?.message ?? "Failed to sign up with Google");
+      console.error('Google sign-up error:', err);
+      
+      // Handle specific error cases
+      let errorMessage = "Failed to sign up with Google";
+      
+      if (err.code === 'auth/popup-closed-by-user') {
+        errorMessage = "Sign-up was cancelled. Please try again.";
+      } else if (err.code === 'auth/popup-blocked') {
+        errorMessage = "Popup was blocked by your browser. Please allow popups and try again.";
+      } else if (err.code === 'auth/network-request-failed') {
+        errorMessage = "Network error. Please check your internet connection and try again.";
+      } else if (err.code === 'auth/too-many-requests') {
+        errorMessage = "Too many failed attempts. Please try again later.";
+      } else if (err.code === 'auth/operation-not-allowed') {
+        errorMessage = "Google sign-in is not enabled. Please contact support.";
+      } else if (err.code === 'auth/email-already-in-use') {
+        errorMessage = "An account with this email already exists. Please sign in instead.";
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

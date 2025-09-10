@@ -39,7 +39,7 @@ app.use(express.json());
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, 'uploads');
+    const uploadDir = process.env.UPLOAD_DIR || path.join(__dirname, 'uploads');
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
@@ -208,18 +208,43 @@ app.post("/chat", async (req, res) => {
       systemPrompt = "Return ONLY JSON: an array of questions {id, question, options, correctAnswer, explanation}.";
     }
 
-    // Save user message if userId and studyPlanId provided
+    // Save user message first (so it's part of history)
     if (userId && studyPlanId && type === "chat") {
       const userMessageId = Date.now().toString();
       saveMessage(userMessageId, userId, studyPlanId, "user", message);
     }
 
-    const response = await client.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
+    // Build messages with rolling history for chat type
+    let messages = [{ role: "system", content: systemPrompt }];
+    if (type === "chat" && userId && studyPlanId) {
+      try {
+        const prior = getMessages(userId, studyPlanId) || [];
+        // Map DB rows to OpenAI chat message roles
+        const mapped = prior.map((m) => ({
+          role: m.type === "user" ? "user" : "assistant",
+          content: m.content
+        }));
+        // Keep only the last 20 messages to control prompt size
+        const tail = mapped.slice(-20);
+        messages = [{ role: "system", content: systemPrompt }, ...tail];
+      } catch (e) {
+        // Fallback to single-turn if history fails
+        messages = [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: message }
+        ];
+      }
+    } else {
+      // Non-chat generation types remain single-turn
+      messages = [
         { role: "system", content: systemPrompt },
         { role: "user", content: message }
-      ]
+      ];
+    }
+
+    const response = await client.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages
     });
 
     const aiReply = response.choices[0].message.content;
