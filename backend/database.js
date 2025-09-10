@@ -94,6 +94,11 @@ export const getUserStudyPlans = (userId) => {
   return stmt.all(userId);
 };
 
+export const deleteStudyPlan = (planId, userId) => {
+  const stmt = db.prepare('DELETE FROM study_plans WHERE id = ? AND user_id = ?');
+  return stmt.run(planId, userId);
+};
+
 // Message management
 export const saveMessage = (messageId, userId, studyPlanId, type, content) => {
   const stmt = db.prepare(`

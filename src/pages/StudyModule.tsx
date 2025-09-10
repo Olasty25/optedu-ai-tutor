@@ -29,6 +29,8 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface Message {
   id: string;
@@ -68,6 +70,8 @@ interface Note {
 const StudyModule = () => {
   const { id } = useParams();
   const { t } = useLanguage();
+  const { isPro } = useAuth();
+  const { toast } = useToast();
   const [currentMessage, setCurrentMessage] = useState("");
   const [activeMode, setActiveMode] = useState<"self" | "guided" | "review">("self");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -79,6 +83,9 @@ const StudyModule = () => {
   const [currentTestQuestion, setCurrentTestQuestion] = useState(0);
   const [testAnswers, setTestAnswers] = useState<number[]>([]);
   const [testCompleted, setTestCompleted] = useState(false);
+  const [userMessageCount, setUserMessageCount] = useState(0);
+  const [questionLimitReached, setQuestionLimitReached] = useState(false);
+  const [lastAIMessageId, setLastAIMessageId] = useState<string | null>(null);
 
   // Nowe stany do obsługi wyboru wiadomości
   const [isSelectingMessages, setIsSelectingMessages] = useState(false);
@@ -213,11 +220,36 @@ const StudyModule = () => {
   useEffect(() => {
     loadStudySession();
     loadNotes();
+    checkQuestionLimit();
   }, [id]);
+
+  // Check question limit for non-PRO users
+  const checkQuestionLimit = async () => {
+    if (!isPro) {
+      try {
+        const planId = String(id || "");
+        const userId = getCurrentUserId();
+        const response = await fetch(`http://localhost:5000/messages/count/${userId}/${planId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setUserMessageCount(data.count);
+          setQuestionLimitReached(data.count >= 8);
+        }
+      } catch (error) {
+        console.error("Error checking question limit:", error);
+      }
+    }
+  };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentMessage.trim()) return;
+
+    // Check question limit for non-PRO users
+    if (!isPro && questionLimitReached) {
+      alert("You have reached the maximum limit of 8 questions/actions for this study plan. Please upgrade to PRO to continue asking questions.");
+      return;
+    }
 
     const planId = String(id || "");
     const userId = getCurrentUserId();
@@ -231,6 +263,14 @@ const StudyModule = () => {
 
     setMessages(prev => [...prev, userMessage]);
     setCurrentMessage("");
+
+    // Update question count for non-PRO users
+    if (!isPro) {
+      setUserMessageCount(prev => prev + 1);
+      if (userMessageCount + 1 >= 8) {
+        setQuestionLimitReached(true);
+      }
+    }
 
     // ✅ fetch AI response
     try {
@@ -257,6 +297,7 @@ const StudyModule = () => {
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiResponse]);
+      setLastAIMessageId(aiResponse.id);
     } catch (err) {
       console.error("Chat error:", err);
       const errorResponse: Message = {
@@ -266,6 +307,7 @@ const StudyModule = () => {
           timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorResponse]);
+      setLastAIMessageId(errorResponse.id);
     }
   };
 
@@ -371,6 +413,13 @@ const StudyModule = () => {
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiResponse]);
+      setLastAIMessageId(aiResponse.id);
+      
+      // Show toast notification for successful generation
+      toast({
+        title: `${currentActionType?.charAt(0).toUpperCase()}${currentActionType?.slice(1)} Generated!`,
+        description: "Click the tile above to view it.",
+      });
   
     } catch (err) {
       console.error("Generate from selection error:", err);
@@ -381,6 +430,7 @@ const StudyModule = () => {
           timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorResponse]);
+      setLastAIMessageId(errorResponse.id);
     } finally {
         // Zresetuj tryb wyboru po zakończeniu generowania
         setIsSelectingMessages(false);
@@ -432,14 +482,11 @@ const StudyModule = () => {
         // Refresh notes display
         loadNotes();
         
-        // Show success message
-        const successMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          type: "ai",
-          content: "✅ Added to your notes! You can view all your notes in the 'Your Notes' section.",
-          timestamp: new Date(),
-        };
-        setMessages((prev) => [...prev, successMessage]);
+        // Show toast notification instead of AI message
+        toast({
+          title: "Added to Notes!",
+          description: "Check it out in the 'Your Notes' section.",
+        });
         setProcessingMessageId(null);
         return;
     }
@@ -462,21 +509,33 @@ const StudyModule = () => {
       }
 
       const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
+        id: lastAIMessageId || (Date.now() + 1).toString(),
         type: "ai",
         content: data.reply,
         timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, aiResponse]);
+      
+      // Replace the last AI message instead of adding a new one
+      setMessages((prev) => {
+        const filteredMessages = prev.filter(msg => msg.id !== lastAIMessageId);
+        return [...filteredMessages, aiResponse];
+      });
+      setLastAIMessageId(aiResponse.id);
     } catch (err) {
       console.error("AI action error:", err);
       const errorResponse: Message = {
-          id: (Date.now() + 1).toString(),
+          id: lastAIMessageId || (Date.now() + 1).toString(),
           type: "ai",
           content: "Sorry, I couldn't process that request. Please try again.",
           timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, errorResponse]);
+      
+      // Replace the last AI message with error instead of adding a new one
+      setMessages((prev) => {
+        const filteredMessages = prev.filter(msg => msg.id !== lastAIMessageId);
+        return [...filteredMessages, errorResponse];
+      });
+      setLastAIMessageId(errorResponse.id);
     } finally {
       setProcessingMessageId(null);
     }
@@ -1041,14 +1100,30 @@ const StudyModule = () => {
                   </div>
                 ) : (
                   <>
+                    {!isPro && (
+                      <div className="mb-3 p-2 bg-muted/50 rounded-lg border border-border">
+                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                          <span>Questions: {userMessageCount}/8 (Free limit)</span>
+                          {questionLimitReached && (
+                            <span className="text-destructive font-medium">Limit Reached</span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    
                     <form onSubmit={handleSendMessage} className="flex gap-2">
                       <Input
-                        placeholder={t('studyModule.askTutorQuestion')}
+                        placeholder={questionLimitReached && !isPro ? "Upgrade to PRO to continue" : t('studyModule.askTutorQuestion')}
                         value={currentMessage}
                         onChange={(e) => setCurrentMessage(e.target.value)}
                         className="flex-1"
+                        disabled={questionLimitReached && !isPro}
                       />
-                      <Button type="submit" className="bg-primary hover:bg-primary/90">
+                      <Button 
+                        type="submit" 
+                        className="bg-primary hover:bg-primary/90"
+                        disabled={questionLimitReached && !isPro}
+                      >
                         <Send className="h-4 w-4" />
                       </Button>
                     </form>

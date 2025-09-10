@@ -1,11 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Plus, Clock, CheckCircle, ArrowRight } from "lucide-react";
+import { BookOpen, Plus, Clock, CheckCircle, ArrowRight, Trash2, AlertCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface StudyPlan {
   id: string;
@@ -17,6 +18,7 @@ interface StudyPlan {
 const Dashboard = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { isPro } = useAuth();
   const [userName, setUserName] = useState("");
   const [studyPlans, setStudyPlans] = useState<StudyPlan[]>([
     {
@@ -26,6 +28,7 @@ const Dashboard = () => {
       progress: 65
     }, 
   ]);
+  const [studyPlansCount, setStudyPlansCount] = useState(0);
 
   useEffect(() => {
     const name = localStorage.getItem("userName") || "Student";
@@ -33,14 +36,41 @@ const Dashboard = () => {
 
     const savedPlans = localStorage.getItem("studyPlans");
     if (savedPlans) {
-      setStudyPlans(JSON.parse(savedPlans));
+      const plans = JSON.parse(savedPlans);
+      setStudyPlans(plans);
+      setStudyPlansCount(plans.length);
     }
   }, []);
+
+  const handleDeletePlan = async (planId: string) => {
+    if (window.confirm("Are you sure you want to delete this study plan? This action cannot be undone.")) {
+      try {
+        const userId = "user_" + Date.now(); // In real app, get from auth context
+        const response = await fetch(`http://localhost:5000/study-plan/${planId}/${userId}`, {
+          method: 'DELETE',
+        });
+
+        if (response.ok) {
+          // Remove from local state
+          const updatedPlans = studyPlans.filter(plan => plan.id !== planId);
+          setStudyPlans(updatedPlans);
+          setStudyPlansCount(updatedPlans.length);
+          
+          // Update localStorage
+          localStorage.setItem("studyPlans", JSON.stringify(updatedPlans));
+        } else {
+          console.error("Failed to delete study plan");
+        }
+      } catch (error) {
+        console.error("Error deleting study plan:", error);
+      }
+    }
+  };
 
   const stats = {
     hoursLearning: 3,
     plansCompleted: 2,
-    freePlansLeft: 2
+    freePlansLeft: isPro ? "Unlimited" : Math.max(0, 2 - studyPlansCount)
   };
 
   return (
@@ -99,7 +129,17 @@ const Dashboard = () => {
             {studyPlans.map((plan) => (
               <Card key={plan.id} className="hover:shadow-soft transition-shadow group">
                 <CardHeader>
-                  <CardTitle className="text-lg">{plan.title}</CardTitle>
+                  <div className="flex justify-between items-start">
+                    <CardTitle className="text-lg">{plan.title}</CardTitle>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeletePlan(plan.id)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground mb-4">{plan.description}</p>
@@ -126,14 +166,21 @@ const Dashboard = () => {
             ))}
           </div>
 
-          <div className="text-center">
-            <p className="text-lg mb-4">{stats.freePlansLeft} {t('dashboard.freePlansLeft')}</p>
-            <Link to="/pricing">
-              <Button variant="outline" size="lg" className="px-8">
-                {t('dashboard.upgradeToPro')}
-              </Button>
-            </Link>
-          </div>
+          {!isPro && (
+            <div className="text-center">
+              <div className="flex items-center justify-center space-x-2 mb-4">
+                <AlertCircle className="h-5 w-5 text-muted-foreground" />
+                <p className="text-lg">
+                  {stats.freePlansLeft === 0 ? "No free plans left" : `${stats.freePlansLeft} free plans left`}
+                </p>
+              </div>
+              <Link to="/pricing">
+                <Button variant="outline" size="lg" className="px-8">
+                  {t('dashboard.upgradeToPro')}
+                </Button>
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Stats */}

@@ -20,7 +20,9 @@ import {
   getGeneratedContent,
   deleteGeneratedContent,
   createStudyPlan,
-  getStudyPlan
+  getStudyPlan,
+  deleteStudyPlan,
+  getUserStudyPlans
 } from "./database.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -492,6 +494,52 @@ app.post("/study-plan", (req, res) => {
   } catch (err) {
     console.error("Error saving study plan:", err.message);
     res.status(500).json({ error: "Failed to save study plan" });
+  }
+});
+
+// Delete study plan
+app.delete("/study-plan/:planId/:userId", (req, res) => {
+  try {
+    const { planId, userId } = req.params;
+    const result = deleteStudyPlan(planId, userId);
+    
+    if (result.changes === 0) {
+      return res.status(404).json({ error: "Study plan not found or not owned by user" });
+    }
+    
+    // Also delete associated messages and generated content
+    deleteMessages(userId, planId);
+    
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Error deleting study plan:", err.message);
+    res.status(500).json({ error: "Failed to delete study plan" });
+  }
+});
+
+// Get user study plans count
+app.get("/study-plans/count/:userId", (req, res) => {
+  try {
+    const { userId } = req.params;
+    const plans = getUserStudyPlans(userId);
+    res.json({ count: plans.length, plans });
+  } catch (err) {
+    console.error("Error getting study plans count:", err.message);
+    res.status(500).json({ error: "Failed to get study plans count" });
+  }
+});
+
+// Get message count for a study plan
+app.get("/messages/count/:userId/:studyPlanId", (req, res) => {
+  try {
+    const { userId, studyPlanId } = req.params;
+    const messages = getMessages(userId, studyPlanId);
+    // Count only user messages (questions/actions)
+    const userMessages = messages.filter(msg => msg.type === 'user');
+    res.json({ count: userMessages.length, totalMessages: messages.length });
+  } catch (err) {
+    console.error("Error getting message count:", err.message);
+    res.status(500).json({ error: "Failed to get message count" });
   }
 });
 

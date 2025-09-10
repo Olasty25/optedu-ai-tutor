@@ -7,14 +7,16 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileUploadPopout } from "@/components/ui/file-upload-popout";
 import { SourcePreviewTiles, SourceItem } from "@/components/ui/source-preview-tiles";
-import { BookOpen, ArrowLeft, Wand2, Upload, Settings } from "lucide-react";
+import { BookOpen, ArrowLeft, Wand2, Upload, Settings, AlertCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 const GeneratePlan = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { isPro } = useAuth();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
@@ -22,6 +24,8 @@ const GeneratePlan = () => {
   const [customizeStructure, setCustomizeStructure] = useState(false);
   const [showFileUpload, setShowFileUpload] = useState(false);
   const [sources, setSources] = useState<SourceItem[]>([]);
+  const [studyPlansCount, setStudyPlansCount] = useState(0);
+  const [limitReached, setLimitReached] = useState(false);
   
   // Additional customization fields
   // Temporary goals inputs
@@ -29,9 +33,36 @@ const GeneratePlan = () => {
   const [goalWhy, setGoalWhy] = useState("");
   const [goalWhen, setGoalWhen] = useState("");
 
+  // Check study plans limit on component mount
+  useEffect(() => {
+    const checkLimits = async () => {
+      if (!isPro) {
+        try {
+          const userId = "user_" + Date.now(); // In real app, get from auth context
+          const response = await fetch(`http://localhost:5000/study-plans/count/${userId}`);
+          if (response.ok) {
+            const data = await response.json();
+            setStudyPlansCount(data.count);
+            setLimitReached(data.count >= 2);
+          }
+        } catch (error) {
+          console.error("Error checking study plans limit:", error);
+        }
+      }
+    };
+    
+    checkLimits();
+  }, [isPro]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (title && description) {
+      // Check limits for non-PRO users
+      if (!isPro && limitReached) {
+        alert("You have reached the maximum limit of 2 study plans. Please upgrade to PRO to create more study plans.");
+        return;
+      }
+
       setIsGenerating(true);
 
       try {
@@ -418,16 +449,30 @@ const GeneratePlan = () => {
                   </div>
                 )}
                 
+                {!isPro && (
+                  <div className="mb-4 p-3 bg-muted/50 rounded-lg border border-border">
+                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                      <AlertCircle className="h-4 w-4" />
+                      <span>Study Plans: {studyPlansCount}/2 (Free limit)</span>
+                    </div>
+                  </div>
+                )}
+
                 <Button 
                   type="submit" 
                   className="w-full bg-primary hover:bg-primary/90"
-                  disabled={isGenerating}
+                  disabled={isGenerating || (!isPro && limitReached)}
                   size="lg"
                 >
                   {isGenerating ? (
                     <>
                       <Wand2 className="mr-2 h-4 w-4 animate-spin" />
                       {t('generatePlan.generatingPlan')}
+                    </>
+                  ) : (!isPro && limitReached) ? (
+                    <>
+                      <AlertCircle className="mr-2 h-4 w-4" />
+                      Limit Reached - Upgrade to PRO
                     </>
                   ) : (
                     <>
