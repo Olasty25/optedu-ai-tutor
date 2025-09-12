@@ -1,0 +1,45 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "functions": {
+    "api/chat.js": {
+      "maxDuration": 30
+    },
+    "api/generate-plan-with-sources.js": {
+      "maxDuration": 30
+    },
+    "api/upload-file.js": {
+      "maxDuration": 30
+    },
+    "api/scrape-url.js": {
+      "maxDuration": 30
+    },
+    "api/messages/*.js": {
+      "maxDuration": 10
+    },
+    "api/generated-content/*.js": {
+      "maxDuration": 10
+    },
+    "api/study-plan*.js": {
+      "maxDuration": 10
+    }
+  }
+}

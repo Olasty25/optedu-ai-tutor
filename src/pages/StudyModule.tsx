@@ -140,7 +140,7 @@ const StudyModule = () => {
       // Load messages
       let loadedMessages: Message[] = [];
       try {
-        const messagesRes = await fetch(`http://localhost:5000/messages/${userId}/${planId}`);
+        const messagesRes = await fetch(`/api/messages/${userId}/${planId}`);
         if (messagesRes.ok) {
           const messagesData = await messagesRes.json();
           loadedMessages = messagesData.messages.map((msg: any) => ({
@@ -157,7 +157,7 @@ const StudyModule = () => {
 
       // Load generated content
       try {
-        const contentRes = await fetch(`http://localhost:5000/generated-content/${userId}/${planId}`);
+        const contentRes = await fetch(`/api/generated-content/${userId}/${planId}`);
         if (contentRes.ok) {
           const contentData = await contentRes.json();
           setGeneratedContent(contentData.content);
@@ -179,7 +179,7 @@ const StudyModule = () => {
             const topic = plan?.title || "this topic";
             const context = plan?.description ? `\nContext: ${plan.description}` : "";
 
-            const res = await fetch("http://localhost:5000/chat", {
+            const res = await fetch("/api/chat", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
@@ -245,7 +245,7 @@ const StudyModule = () => {
       try {
         const planId = String(id || "");
         const userId = getCurrentUserId();
-        const response = await fetch(`http://localhost:5000/messages/count/${userId}/${planId}`);
+        const response = await fetch(`/api/messages/count/${userId}/${planId}`);
         if (response.ok) {
           const data = await response.json();
           setUserMessageCount(data.count);
@@ -263,7 +263,7 @@ const StudyModule = () => {
 
     // Check question limit for non-PRO users
     if (!isPro && questionLimitReached) {
-      alert("You have reached the maximum limit of 8 questions/actions for this study plan. Please upgrade to PRO to continue asking questions.");
+      alert(t('studyModule.questionLimitReached'));
       return;
     }
 
@@ -290,7 +290,7 @@ const StudyModule = () => {
 
     // ✅ fetch AI response
     try {
-      const res = await fetch("http://localhost:5000/chat", {
+      const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -303,7 +303,7 @@ const StudyModule = () => {
 
       const data = await res.json();
       if (res.status !== 200) {
-          throw new Error(data.error || "Something went wrong");
+          throw new Error(data.error || t('studyModule.somethingWentWrong'));
       }
 
       const aiResponse: Message = {
@@ -319,7 +319,7 @@ const StudyModule = () => {
       const errorResponse: Message = {
           id: (Date.now() + 1).toString(),
           type: "ai",
-          content: "Sorry, I couldn't get a response. Please make sure the backend server is running on port 5000.",
+          content: t('studyModule.sorryCouldntGetResponse'),
           timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorResponse]);
@@ -377,7 +377,7 @@ const StudyModule = () => {
   
       const data = await res.json();
       if (res.status !== 200) {
-          throw new Error(data.error || "Something went wrong");
+          throw new Error(data.error || t('studyModule.somethingWentWrong'));
       }
   
       let newContent: GeneratedContent | null = null;
@@ -405,7 +405,7 @@ const StudyModule = () => {
         
         // Save generated content to database
         try {
-          await fetch("http://localhost:5000/generated-content", {
+          await fetch("/api/generated-content", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -442,7 +442,7 @@ const StudyModule = () => {
       const errorResponse: Message = {
           id: (Date.now() + 1).toString(),
           type: "ai",
-          content: `Sorry, I couldn't generate the ${currentActionType} from the selected messages. Please try again.`,
+          content: `${t('studyModule.sorryCouldntGenerate')} ${currentActionType} ${t('studyModule.fromSelectedMessages')}`,
           timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorResponse]);
@@ -500,15 +500,15 @@ const StudyModule = () => {
         
         // Show toast notification instead of AI message
         toast({
-          title: "Added to Notes!",
-          description: "Check it out in the 'Your Notes' section.",
+          title: t('auth.addedToNotes'),
+          description: t('auth.checkItOut'),
         });
         setProcessingMessageId(null);
         return;
     }
 
     try {
-      const res = await fetch("http://localhost:5000/chat", {
+      const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -521,7 +521,7 @@ const StudyModule = () => {
 
       const data = await res.json();
       if (res.status !== 200) {
-          throw new Error(data.error || "Something went wrong");
+          throw new Error(data.error || t('studyModule.somethingWentWrong'));
       }
 
       const aiResponse: Message = {
@@ -542,7 +542,7 @@ const StudyModule = () => {
       const errorResponse: Message = {
           id: lastAIMessageId || (Date.now() + 1).toString(),
           type: "ai",
-          content: "Sorry, I couldn't process that request. Please try again.",
+          content: t('studyModule.sorryCouldntProcess'),
           timestamp: new Date(),
       };
       
@@ -562,7 +562,7 @@ const StudyModule = () => {
     
     // Delete from database
     try {
-      await fetch(`http://localhost:5000/generated-content/${contentId}/${getCurrentUserId()}`, {
+      await fetch(`/api/generated-content/${contentId}/${getCurrentUserId()}`, {
         method: "DELETE"
       });
     } catch (error) {
@@ -584,7 +584,7 @@ const StudyModule = () => {
     const userId = getCurrentUserId();
     
     try {
-      const res = await fetch("http://localhost:5000/chat", {
+      const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

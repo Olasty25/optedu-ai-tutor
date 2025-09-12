@@ -34,7 +34,7 @@ const Register = () => {
       }
       navigate("/preferences");
     } catch (err: any) {
-      setError(err?.message ?? "Failed to register");
+      setError(err?.message ?? t('auth.failedToRegister'));
     } finally {
       setIsLoading(false);
     }
@@ -56,7 +56,7 @@ const Register = () => {
       console.error('Google sign-up error:', err);
       
       // Handle specific error cases
-      let errorMessage = "Failed to sign up with Google";
+      let errorMessage = t('auth.failedToSignUpWithGoogle');
       
       if (err.code === 'auth/popup-closed-by-user') {
         errorMessage = "Sign-up was cancelled. Please try again.";
@@ -163,7 +163,7 @@ const Register = () => {
                 className="w-full bg-gradient-hero hover:opacity-90"
                 disabled={isLoading}
               >
-                {isLoading ? "Creating account..." : t('auth.registerButton')}
+                {isLoading ? t('auth.creatingAccount') : t('auth.registerButton')}
               </Button>
               {error && (
                 <p className="text-red-600 text-sm" role="alert">{error}</p>
@@ -205,7 +205,7 @@ const Register = () => {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                   />
                 </svg>
-                {isLoading ? "Creating account..." : "Continue with Google"}
+                {isLoading ? t('auth.creatingAccount') : t('auth.continueWithGoogle')}
               </Button>
             </div>
             

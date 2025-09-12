@@ -8,7 +8,6 @@ import { useState } from "react";
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { AuthDebug } from "@/components/ui/auth-debug";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -27,7 +26,7 @@ const Login = () => {
       await signInWithEmailAndPassword(auth, email, password);
       navigate("/dashboard");
     } catch (err: any) {
-      setError(err?.message ?? "Failed to sign in");
+      setError(err?.message ?? t('auth.failedToSignIn'));
     } finally {
       setIsLoading(false);
     }
@@ -59,7 +58,7 @@ const Login = () => {
       console.error('Error message:', err.message);
       
       // Handle specific error cases
-      let errorMessage = "Failed to sign in with Google";
+      let errorMessage = t('auth.failedToSignInWithGoogle');
       
       if (err.code === 'auth/popup-closed-by-user') {
         errorMessage = "Sign-in was cancelled. Please try again.";
@@ -134,7 +133,7 @@ const Login = () => {
                 className="w-full bg-gradient-hero hover:opacity-90"
                 disabled={isLoading}
               >
-                {isLoading ? "Signing in..." : t('auth.loginButton')}
+                {isLoading ? t('auth.signingIn') : t('auth.loginButton')}
               </Button>
               {error && (
                 <p className="text-red-600 text-sm" role="alert">{error}</p>
@@ -176,7 +175,7 @@ const Login = () => {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                   />
                 </svg>
-                {isLoading ? "Signing in..." : "Continue with Google"}
+                {isLoading ? t('auth.signingIn') : t('auth.continueWithGoogle')}
               </Button>
             </div>
             
@@ -191,9 +190,6 @@ const Login = () => {
           </CardContent>
         </Card>
       </div>
-      
-      {/* Debug component - remove in production */}
-      <AuthDebug show={import.meta.env.DEV} />
     </div>
   );
 };

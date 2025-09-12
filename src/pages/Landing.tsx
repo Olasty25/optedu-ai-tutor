@@ -60,14 +60,11 @@ const Landing = () => {
       
       {/* Hero Section */}
       <section className="pt-20 md:pt-32 pb-12 md:pb-20 px-4 relative overflow-hidden">
-        {/* Video Background */}
-        <video
+        {/* Banner Image Background */}
+        <img
           className="absolute inset-0 w-full h-full object-cover"
-          src="/webring.mp4"
-          autoPlay
-          muted
-          loop
-          playsInline
+          src="/banna.png"
+          alt="Optedu AI Banner"
         />
         <div className="absolute inset-0 bg-black/40" />
         <div className="container mx-auto text-center relative z-10">
@@ -184,7 +181,7 @@ const Landing = () => {
               <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-lg px-4 md:px-6 py-2 md:py-3">
                 <Users className="h-4 w-4 md:h-5 md:w-5 mr-2" />
                 <span className="font-semibold text-sm md:text-base">
-                  {betaSlotsRemaining} {betaSlotsRemaining === 1 ? 'slot' : 'slots'} remaining
+                  {t('landing.betaSlotsRemaining', { count: betaSlotsRemaining })}
                 </span>
               </div>
             </div>
@@ -210,7 +207,7 @@ const Landing = () => {
                 className="bg-white text-primary hover:bg-white/90 font-semibold px-4 md:px-6 py-3 w-full sm:w-auto"
                 disabled={betaSlotsRemaining <= 0}
               >
-                {betaSlotsRemaining <= 0 ? 'Beta Full' : t('landing.betaJoinButton')}
+                {betaSlotsRemaining <= 0 ? t('landing.betaFull') : t('landing.betaJoinButton')}
               </Button>
             </form>
             {betaMsg && (
@@ -220,7 +217,7 @@ const Landing = () => {
             )}
             {betaSlotsRemaining <= 0 && (
               <p className="text-xs md:text-sm text-yellow-300 mt-3 flex items-center justify-center">
-                <Users className="h-3 w-3 md:h-4 md:w-4 mr-2" /> Beta testing is now full! Thank you for your interest.
+                <Users className="h-3 w-3 md:h-4 md:w-4 mr-2" /> {t('landing.betaTestingFull')}
               </p>
             )}
             <p className="text-xs md:text-sm text-white/70 mt-4">
@@ -232,7 +229,7 @@ const Landing = () => {
                 onClick={resetBetaSlots}
                 className="text-xs text-white/50 hover:text-white/70 mt-2 underline"
               >
-                Reset Beta Slots (Dev Only)
+                {t('landing.resetBetaSlots')}
               </button>
             )}
           </div>

@@ -79,7 +79,7 @@ const Dashboard = () => {
         
         // Try to delete from backend first (if it exists there)
         try {
-          const response = await fetch(`http://localhost:5000/study-plan/${planId}/${userId}`, {
+          const response = await fetch(`/api/study-plan/${planId}/${userId}`, {
             method: 'DELETE',
           });
           if (!response.ok) {
@@ -260,7 +260,7 @@ const Dashboard = () => {
               <div className="flex items-center justify-center space-x-2 mb-3 md:mb-4">
                 <AlertCircle className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
                 <p className="text-sm md:text-lg">
-                  {stats.freePlansLeft === 0 ? "No free plans left" : `${stats.freePlansLeft} free plans left`}
+                  {stats.freePlansLeft === 0 ? t('dashboard.noFreePlansLeft') : t('dashboard.freePlansLeftCount', { count: stats.freePlansLeft })}
                 </p>
               </div>
               <Link to="/pricing">
@@ -284,7 +284,7 @@ const Dashboard = () => {
                 {stats.hoursLearning > 0 && `${stats.hoursLearning} hours`}
                 {stats.hoursLearning > 0 && stats.minutesLearning > 0 && ', '}
                 {stats.minutesLearning > 0 && `${stats.minutesLearning} minutes`}
-                {stats.hoursLearning === 0 && stats.minutesLearning === 0 && 'No study time yet'}
+                {stats.hoursLearning === 0 && stats.minutesLearning === 0 && t('dashboard.noStudyTimeYet')}
               </div>
             </div>
             
@@ -292,8 +292,8 @@ const Dashboard = () => {
               <h3 className="text-base md:text-lg font-semibold mb-2">{t('dashboard.plansCompleted')}</h3>
               <div className="text-2xl md:text-3xl font-bold text-accent mb-1">{stats.plansCompleted}</div>
               <div className="text-xs md:text-sm text-muted-foreground">
-                {stats.plansCompleted === 0 ? 'No plans completed yet' : 
-                 stats.plansCompleted === 1 ? 'plan completed' : 'plans completed'}
+                {stats.plansCompleted === 0 ? t('dashboard.noPlansCompletedYet') : 
+                 stats.plansCompleted === 1 ? t('dashboard.planCompleted') : t('dashboard.plansCompletedText')}
               </div>
             </div>
           </div>

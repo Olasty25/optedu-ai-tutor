@@ -116,7 +116,7 @@ const GeneratePlan = () => {
             userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
             localStorage.setItem("currentUserId", userId);
           }
-          const response = await fetch(`http://localhost:5000/study-plans/count/${userId}`);
+          const response = await fetch(`/api/study-plans/count/${userId}`);
           if (response.ok) {
             const data = await response.json();
             setStudyPlansCount(data.count);
@@ -148,7 +148,7 @@ const GeneratePlan = () => {
 
         // If we have sources, use the new backend endpoint
         if (sources.length > 0) {
-          const response = await fetch("http://localhost:5000/generate-plan-with-sources", {
+          const response = await fetch("/api/generate-plan-with-sources", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -219,7 +219,7 @@ const GeneratePlan = () => {
         let refinedTitle = title;
         let refinedDescription = description;
         try {
-          const res = await fetch("/api/chat.js", {
+          const res = await fetch("/api/chat", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -294,7 +294,7 @@ const GeneratePlan = () => {
 
           console.log('Uploading file:', file.name, 'Size:', file.size);
 
-          const response = await fetch('http://localhost:5000/upload-file', {
+          const response = await fetch('/api/upload-file', {
             method: 'POST',
             body: formData,
           });
@@ -313,7 +313,7 @@ const GeneratePlan = () => {
             console.error('Upload failed:', errorData);
             setSources(prev => prev.map(s => 
               s.id === tempId 
-                ? { ...s, status: 'error', error: errorData.error || 'Upload failed' }
+                ? { ...s, status: 'error', error: errorData.error || t('generatePlan.uploadFailed') }
                 : s
             ));
           }
@@ -343,7 +343,7 @@ const GeneratePlan = () => {
       setSources(prev => [...prev, newSource]);
       
       try {
-        const response = await fetch('http://localhost:5000/scrape-url', {
+        const response = await fetch('/api/scrape-url', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -372,7 +372,7 @@ const GeneratePlan = () => {
         console.error('Link processing error:', error);
         setSources(prev => prev.map(s => 
           s.id === tempId 
-            ? { ...s, status: 'error', error: 'Processing failed' }
+            ? { ...s, status: 'error', error: t('generatePlan.processingFailed') }
             : s
         ));
       }
@@ -470,7 +470,7 @@ const GeneratePlan = () => {
                       className="flex items-center gap-2 border-primary/30 hover:bg-primary/10"
                     >
                       <Lightbulb className="h-4 w-4" />
-                      {showExamples ? 'Hide Examples' : 'Show Examples'}
+                      {showExamples ? t('generatePlan.hideExamples') : t('generatePlan.showExamples')}
                     </Button>
                   </div>
 

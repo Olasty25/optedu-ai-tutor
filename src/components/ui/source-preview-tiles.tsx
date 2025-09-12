@@ -67,7 +67,7 @@ export const SourcePreviewTiles = ({ sources, onRemove, onRetry }: SourcePreview
       case 'error':
         return t('generatePlan.error');
       default:
-        return 'Unknown';
+        return t('generatePlan.unknown');
     }
   };
 
