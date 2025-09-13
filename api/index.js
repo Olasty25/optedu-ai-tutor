@@ -1,15 +1,16 @@
-const express = require("express");
-const cors = require("cors");
-const multer = require("multer");
-const OpenAI = require("openai");
-const mammoth = require("mammoth");
-const cheerio = require("cheerio");
-const axios = require("axios");
-const fs = require("fs");
-const path = require("path");
+import express from "express";
+import cors from "cors";
+import multer from "multer";
+import OpenAI from "openai";
+import mammoth from "mammoth";
+import cheerio from "cheerio";
+import axios from "axios";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 // Import database functions
-const {
+import {
   createUser,
   saveMessage,
   getMessages,
@@ -21,7 +22,10 @@ const {
   getStudyPlan,
   deleteStudyPlan,
   getUserStudyPlans
-} = require("./database");
+} from "./database.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -538,4 +542,4 @@ app.get("/messages/count/:userId/:studyPlanId", (req, res) => {
   }
 });
 
-module.exports = app;
+export default app;

@@ -1,5 +1,5 @@
-const Database = require('better-sqlite3');
-const path = require('path');
+import Database from 'better-sqlite3';
+import path from 'path';
 
 // For Vercel, we'll use a simple in-memory database or file-based database
 // In production, you might want to use a proper database service
@@ -225,7 +225,7 @@ const deleteGeneratedContent = (contentId, userId) => {
   }
 };
 
-module.exports = {
+export {
   createUser,
   createStudyPlan,
   getStudyPlan,

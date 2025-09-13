@@ -1,9 +1,9 @@
-const formidable = require('formidable');
-const fs = require('fs');
-const path = require('path');
-const mammoth = require('mammoth');
-const cheerio = require('cheerio');
-const axios = require('axios');
+import formidable from 'formidable';
+import fs from 'fs';
+import path from 'path';
+import mammoth from 'mammoth';
+import cheerio from 'cheerio';
+import axios from 'axios';
 
 // File processing functions
 const processPDF = async (filePath) => {
@@ -72,7 +72,7 @@ const processFile = async (filePath, originalName) => {
   }
 };
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
