@@ -32,14 +32,27 @@
     "api/scrape-url.js": {
       "maxDuration": 30
     },
-    "api/messages/*.js": {
+    "api/create-checkout-session.js": {
       "maxDuration": 10
     },
-    "api/generated-content/*.js": {
+    "api/messages/**/*.js": {
       "maxDuration": 10
     },
-    "api/study-plan*.js": {
+    "api/generated-content.js": {
+      "maxDuration": 10
+    },
+    "api/generated-content/**/*.js": {
+      "maxDuration": 10
+    },
+    "api/study-plan.js": {
+      "maxDuration": 10
+    },
+    "api/study-plan/**/*.js": {
+      "maxDuration": 10
+    },
+    "api/study-plans/**/*.js": {
       "maxDuration": 10
     }
   }
 }
+

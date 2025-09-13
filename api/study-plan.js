@@ -14,28 +14,28 @@ export default async function handler(req, res) {
 
   try {
     if (req.method === 'POST') {
-      // Save generated content
-      const { contentId, userId, studyPlanId, type, title, data } = req.body;
+      // Save study plan
+      const { planId, userId, title, description } = req.body;
       
-      const content = {
-        id: contentId,
+      const studyPlan = {
+        id: planId,
         userId,
-        studyPlanId,
-        type,
         title,
-        data,
+        description,
         createdAt: new Date().toISOString()
       };
 
-      await kv.set(`generated_content:${contentId}`, content);
-      await kv.sadd(`generated_content:${userId}:${studyPlanId}`, contentId);
+      await kv.set(`study_plan:${planId}`, studyPlan);
+      await kv.sadd(`study_plans:${userId}`, planId);
       
       res.json({ success: true });
     } else {
       res.status(405).json({ error: 'Method not allowed' });
     }
   } catch (err) {
-    console.error('Error saving generated content:', err.message);
-    res.status(500).json({ error: 'Failed to save generated content' });
+    console.error('Error saving study plan:', err.message);
+    res.status(500).json({ error: 'Failed to save study plan' });
   }
 }
+
+

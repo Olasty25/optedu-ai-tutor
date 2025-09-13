@@ -1,5 +1,3 @@
-import { kv } from '@vercel/kv';
-
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -16,22 +14,25 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { userId } = req.query;
-
   try {
-    const planIds = await kv.smembers(`study_plans:${userId}`) || [];
-    const plans = [];
-    
-    for (const planId of planIds) {
-      const plan = await kv.get(`study_plan:${planId}`);
-      if (plan) {
-        plans.push(plan);
-      }
-    }
-    
-    res.json({ count: plans.length, plans });
-  } catch (err) {
-    console.error('Error getting study plans count:', err.message);
-    res.status(500).json({ error: 'Failed to get study plans count' });
+    // Basic health check
+    const healthStatus = {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      environment: process.env.NODE_ENV || 'development',
+      version: '1.0.0'
+    };
+
+    res.status(200).json(healthStatus);
+  } catch (error) {
+    console.error('Health check error:', error);
+    res.status(500).json({ 
+      status: 'error',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
   }
 }
+
+

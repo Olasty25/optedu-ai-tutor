@@ -1,3 +1,5 @@
+import { kv } from '@vercel/kv';
+
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -10,17 +12,26 @@ export default async function handler(req, res) {
     return;
   }
 
-  if (req.method === "DELETE") {
-    try {
-      const { contentId, userId } = req.query;
+  const { contentId, userId } = req.query;
+
+  try {
+    if (req.method === 'DELETE') {
+      // Delete generated content
+      const content = await kv.get(`generated_content:${contentId}`);
       
-      // For now, just return success since we don't have database persistence
+      if (!content || content.userId !== userId) {
+        return res.status(404).json({ error: 'Content not found or not owned by user' });
+      }
+
+      await kv.del(`generated_content:${contentId}`);
+      await kv.srem(`generated_content:${userId}:${content.studyPlanId}`, contentId);
+      
       res.json({ success: true });
-    } catch (err) {
-      console.error("Error deleting generated content:", err.message);
-      res.status(500).json({ error: "Failed to delete generated content" });
+    } else {
+      res.status(405).json({ error: 'Method not allowed' });
     }
-  } else {
-    res.status(405).json({ error: "Method not allowed" });
+  } catch (err) {
+    console.error('Error deleting generated content:', err.message);
+    res.status(500).json({ error: 'Failed to delete generated content' });
   }
 }

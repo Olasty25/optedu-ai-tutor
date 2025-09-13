@@ -1,3 +1,5 @@
+import { kv } from '@vercel/kv';
+
 export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -10,17 +12,19 @@ export default async function handler(req, res) {
     return;
   }
 
-  if (req.method !== "GET") {
-    return res.status(405).json({ error: "Method not allowed" });
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const { userId, studyPlanId } = req.query;
+
   try {
-    const { userId, studyPlanId } = req.query;
-    
-    // For now, return mock counts since we don't have database persistence
-    res.json({ count: 0, totalMessages: 0 });
+    const messages = await kv.get(`messages:${userId}:${studyPlanId}`) || [];
+    // Count only user messages (questions/actions)
+    const userMessages = messages.filter(msg => msg.type === 'user');
+    res.json({ count: userMessages.length, totalMessages: messages.length });
   } catch (err) {
-    console.error("Error getting message count:", err.message);
-    res.status(500).json({ error: "Failed to get message count" });
+    console.error('Error getting message count:', err.message);
+    res.status(500).json({ error: 'Failed to get message count' });
   }
 }
