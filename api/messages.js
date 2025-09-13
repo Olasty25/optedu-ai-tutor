@@ -12,14 +12,21 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { userId, studyPlanId } = req.query;
-
   try {
-    if (req.method === 'GET') {
-      // Get messages for a study plan
-      const messages = await kv.get(`messages:${userId}:${studyPlanId}`) || [];
-      res.json({ messages });
-    } else if (req.method === 'DELETE') {
+    const { userId, studyPlanId, action } = req.query;
+
+    if (req.method === 'GET' && userId && studyPlanId) {
+      if (action === 'count') {
+        // Get message count
+        const messages = await kv.get(`messages:${userId}:${studyPlanId}`) || [];
+        const userMessages = messages.filter(msg => msg.type === 'user');
+        res.json({ count: userMessages.length, totalMessages: messages.length });
+      } else {
+        // Get messages for a study plan
+        const messages = await kv.get(`messages:${userId}:${studyPlanId}`) || [];
+        res.json({ messages });
+      }
+    } else if (req.method === 'DELETE' && userId && studyPlanId) {
       // Delete messages for a study plan
       await kv.del(`messages:${userId}:${studyPlanId}`);
       res.json({ success: true });

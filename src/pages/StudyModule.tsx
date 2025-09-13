@@ -140,7 +140,7 @@ const StudyModule = () => {
       // Load messages
       let loadedMessages: Message[] = [];
       try {
-        const messagesRes = await fetch(`/api/messages/${userId}/${planId}`);
+        const messagesRes = await fetch(`/api/messages?userId=${userId}&studyPlanId=${planId}`);
         if (messagesRes.ok) {
           const messagesData = await messagesRes.json();
           loadedMessages = messagesData.messages.map((msg: any) => ({
@@ -157,7 +157,7 @@ const StudyModule = () => {
 
       // Load generated content
       try {
-        const contentRes = await fetch(`/api/generated-content/${userId}/${planId}`);
+        const contentRes = await fetch(`/api/generated-content?userId=${userId}&studyPlanId=${planId}`);
         if (contentRes.ok) {
           const contentData = await contentRes.json();
           setGeneratedContent(contentData.content);
@@ -245,7 +245,7 @@ const StudyModule = () => {
       try {
         const planId = String(id || "");
         const userId = getCurrentUserId();
-        const response = await fetch(`/api/messages/count/${userId}/${planId}`);
+        const response = await fetch(`/api/messages?userId=${userId}&studyPlanId=${planId}&action=count`);
         if (response.ok) {
           const data = await response.json();
           setUserMessageCount(data.count);
@@ -562,7 +562,7 @@ const StudyModule = () => {
     
     // Delete from database
     try {
-      await fetch(`/api/generated-content/delete/${contentId}`, {
+      await fetch(`/api/generated-content?contentId=${contentId}&action=delete`, {
         method: "DELETE",
         headers: {
           'Content-Type': 'application/json',

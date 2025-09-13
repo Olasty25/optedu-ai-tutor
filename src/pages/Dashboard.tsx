@@ -79,7 +79,7 @@ const Dashboard = () => {
         
         // Try to delete from backend first (if it exists there)
         try {
-          const response = await fetch(`/api/study-plan/${planId}/${userId}`, {
+          const response = await fetch(`/api/study-plan?planId=${planId}&userId=${userId}`, {
             method: 'DELETE',
           });
           if (!response.ok) {

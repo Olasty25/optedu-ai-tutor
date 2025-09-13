@@ -116,7 +116,7 @@ const GeneratePlan = () => {
             userId = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
             localStorage.setItem("currentUserId", userId);
           }
-          const response = await fetch(`/api/study-plans/count/${userId}`);
+          const response = await fetch(`/api/study-plan?userId=${userId}&action=count`);
           if (response.ok) {
             const data = await response.json();
             setStudyPlansCount(data.count);
