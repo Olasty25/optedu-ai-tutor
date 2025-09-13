@@ -562,8 +562,12 @@ const StudyModule = () => {
     
     // Delete from database
     try {
-      await fetch(`/api/generated-content/${contentId}/${getCurrentUserId()}`, {
-        method: "DELETE"
+      await fetch(`/api/generated-content/delete/${contentId}`, {
+        method: "DELETE",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: getCurrentUserId() })
       });
     } catch (error) {
       console.error("Error deleting generated content:", error);

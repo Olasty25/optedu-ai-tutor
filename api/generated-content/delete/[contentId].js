@@ -12,7 +12,8 @@ module.exports = async function handler(req, res) {
     return;
   }
 
-  const { contentId, userId } = req.query;
+  const { contentId } = req.query;
+  const { userId } = req.body;
 
   try {
     if (req.method === 'DELETE') {
