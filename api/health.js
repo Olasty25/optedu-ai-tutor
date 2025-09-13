@@ -15,20 +15,13 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    // Enhanced health check with debug info
+    // Simple health check first
     const healthStatus = {
       status: 'ok',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       environment: process.env.NODE_ENV || 'development',
-      version: '1.0.0',
-      debug: {
-        hasOpenAIKey: !!process.env.OPENAI_API_KEY,
-        openAIKeyLength: process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.length : 0,
-        openAIKeyStart: process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.substring(0, 10) + '...' : 'NOT_SET',
-        allEnvVars: Object.keys(process.env).filter(key => key.includes('OPENAI') || key.includes('KV')),
-        nodeVersion: process.version
-      }
+      version: '1.0.0'
     };
 
     res.status(200).json(healthStatus);

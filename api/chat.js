@@ -1,5 +1,5 @@
 const OpenAI = require("openai");
-const { kv } = require('@vercel/kv');
+// const { kv } = require('@vercel/kv'); // Commented out for now
 
 module.exports = async function handler(req, res) {
   // Enable CORS
@@ -21,41 +21,10 @@ module.exports = async function handler(req, res) {
     apiKey: process.env.OPENAI_API_KEY,
   });
 
-  const { type, message, userId, studyPlanId } = req.body;
+  const { type, message } = req.body;
 
-  // Create user if doesn't exist
-  if (userId) {
-    try {
-      const existingUser = await kv.get(`user:${userId}`);
-      if (!existingUser) {
-        await kv.set(`user:${userId}`, {
-          id: userId,
-          createdAt: new Date().toISOString()
-        });
-      }
-    } catch (error) {
-      console.log("User creation skipped:", error.message);
-    }
-  }
-
-  // Create study plan if doesn't exist (for testing)
-  if (studyPlanId && userId) {
-    try {
-      const existingPlan = await kv.get(`study_plan:${studyPlanId}`);
-      if (!existingPlan) {
-        const studyPlan = {
-          id: studyPlanId,
-          userId,
-          title: "Test Study Plan",
-          description: "Auto-created for testing",
-          createdAt: new Date().toISOString()
-        };
-        await kv.set(`study_plan:${studyPlanId}`, studyPlan);
-        await kv.sadd(`study_plans:${userId}`, studyPlanId);
-      }
-    } catch (error) {
-      console.log("Study plan creation skipped:", error.message);
-    }
+  if (!message) {
+    return res.status(400).json({ error: "Message is required" });
   }
 
   let systemPrompt = "You are a helpful AI study assistant.";
@@ -69,55 +38,11 @@ module.exports = async function handler(req, res) {
     systemPrompt = "Return ONLY JSON: an array of questions {id, question, options, correctAnswer, explanation}.";
   }
 
-  // Save user message first (so it's part of history)
-  if (userId && studyPlanId && type === "chat") {
-    try {
-      const userMessageId = Date.now().toString();
-      const userMessage = {
-        id: userMessageId,
-        userId,
-        studyPlanId,
-        type: "user",
-        content: message,
-        timestamp: new Date().toISOString()
-      };
-      
-      // Get existing messages and add new one
-      const existingMessages = await kv.get(`messages:${userId}:${studyPlanId}`) || [];
-      existingMessages.push(userMessage);
-      await kv.set(`messages:${userId}:${studyPlanId}`, existingMessages);
-    } catch (error) {
-      console.log("Message saving failed:", error.message);
-    }
-  }
-
-  // Build messages with rolling history for chat type
-  let messages = [{ role: "system", content: systemPrompt }];
-  if (type === "chat" && userId && studyPlanId) {
-    try {
-      const prior = await kv.get(`messages:${userId}:${studyPlanId}`) || [];
-      // Map DB rows to OpenAI chat message roles
-      const mapped = prior.map((m) => ({
-        role: m.type === "user" ? "user" : "assistant",
-        content: m.content
-      }));
-      // Keep only the last 20 messages to control prompt size
-      const tail = mapped.slice(-20);
-      messages = [{ role: "system", content: systemPrompt }, ...tail];
-    } catch (e) {
-      // Fallback to single-turn if history fails
-      messages = [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: message }
-      ];
-    }
-  } else {
-    // Non-chat generation types remain single-turn
-    messages = [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: message }
-    ];
-  }
+  // Simple single-turn conversation
+  const messages = [
+    { role: "system", content: systemPrompt },
+    { role: "user", content: message }
+  ];
 
   try {
     const response = await client.chat.completions.create({
@@ -126,28 +51,6 @@ module.exports = async function handler(req, res) {
     });
 
     const aiReply = response.choices[0].message.content;
-
-    // Save AI response if userId and studyPlanId provided
-    if (userId && studyPlanId && type === "chat") {
-      try {
-        const aiMessageId = (Date.now() + 1).toString();
-        const aiMessage = {
-          id: aiMessageId,
-          userId,
-          studyPlanId,
-          type: "ai",
-          content: aiReply,
-          timestamp: new Date().toISOString()
-        };
-        
-        // Get existing messages and add new one
-        const existingMessages = await kv.get(`messages:${userId}:${studyPlanId}`) || [];
-        existingMessages.push(aiMessage);
-        await kv.set(`messages:${userId}:${studyPlanId}`, existingMessages);
-      } catch (error) {
-        console.log("AI message saving failed:", error.message);
-      }
-    }
 
     res.status(200).json({ reply: aiReply });
   } catch (err) {
