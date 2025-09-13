@@ -5,12 +5,6 @@ const mammoth = require('mammoth');
 const cheerio = require('cheerio');
 const axios = require('axios');
 
-module.exports.config = {
-  api: {
-    bodyParser: false,
-  },
-};
-
 // File processing functions
 const processPDF = async (filePath) => {
   try {

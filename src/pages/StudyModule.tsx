@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { FlashcardsPopout } from "@/components/ui/flashcards-popout";
 import { SummaryPopout } from "@/components/ui/summary-popout";
 import { ReviewPopout } from "@/components/ui/review-popout";
+import { buildApiUrl, API_ENDPOINTS } from "@/lib/config";
 import { 
   BookOpen, 
   ArrowLeft, 
@@ -290,7 +291,7 @@ const StudyModule = () => {
 
     // ✅ fetch AI response
     try {
-      const res = await fetch("/api/chat", {
+      const res = await fetch(buildApiUrl(API_ENDPOINTS.CHAT), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

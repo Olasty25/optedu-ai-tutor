@@ -1,4 +1,5 @@
 // API Fallback System - Tries complex API first, falls back to simple API
+import { buildApiUrl, API_ENDPOINTS } from './config';
 
 export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
   try {
@@ -14,10 +15,10 @@ export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
     // Fallback to simple APIs
     let fallbackEndpoint = endpoint;
     
-    if (endpoint === '/api/chat') {
-      fallbackEndpoint = '/api/chat-simple';
-    } else if (endpoint === '/api/generate-plan-with-sources') {
-      fallbackEndpoint = '/api/generate-plan-simple';
+    if (endpoint.includes('/api/chat')) {
+      fallbackEndpoint = buildApiUrl('/api/chat-simple');
+    } else if (endpoint.includes('/api/generate-plan-with-sources')) {
+      fallbackEndpoint = buildApiUrl('/api/generate-plan-simple');
     }
     
     try {
@@ -35,15 +36,15 @@ export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
 };
 
 // Convenience functions
-export const chatAPI = (data: any) => 
-  apiCall('/api/chat', {
+export const chatAPI = (data: any) =>
+  apiCall(buildApiUrl(API_ENDPOINTS.CHAT), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   });
 
-export const generatePlanAPI = (data: any) => 
-  apiCall('/api/generate-plan-with-sources', {
+export const generatePlanAPI = (data: any) =>
+  apiCall(buildApiUrl(API_ENDPOINTS.GENERATE_PLAN), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)

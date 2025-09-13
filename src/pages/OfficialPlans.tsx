@@ -1,11 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Lock, ArrowLeft, Crown } from "lucide-react";
+import { BookOpen, Lock, ArrowLeft, Crown, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { LanguageSelector } from "@/components/ui/language-selector";
 import { useIsMobile } from "@/hooks/use-mobile";
+import EgzaminChat from "@/components/ui/egzamin-chat";
 
 interface OfficialPlan {
   id: string;
@@ -19,6 +21,7 @@ const OfficialPlans = () => {
   const { t } = useLanguage();
   const { isPro } = useAuth();
   const isMobile = useIsMobile();
+  const [chatSubject, setChatSubject] = useState<string | null>(null);
 
   const officialPlans: OfficialPlan[] = [
     {
@@ -144,9 +147,21 @@ const OfficialPlans = () => {
                       </p>
                     </div>
                   ) : (
-                    <Button className="w-full group-hover:bg-primary/90 text-sm md:text-base py-2 md:py-3">
-                      Rozpocznij naukę
-                    </Button>
+                    <div className="space-y-2">
+                      <Button 
+                        onClick={() => setChatSubject(plan.subject)}
+                        className="w-full group-hover:bg-primary/90 text-sm md:text-base py-2 md:py-3"
+                      >
+                        <MessageCircle className="mr-2 h-3 w-3 md:h-4 md:w-4" />
+                        Chat z AI Tutorem
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        className="w-full text-sm md:text-base py-2 md:py-3"
+                      >
+                        Rozpocznij naukę
+                      </Button>
+                    </div>
                   )}
                 </div>
               </CardContent>
@@ -170,6 +185,14 @@ const OfficialPlans = () => {
           </div>
         )}
       </div>
+
+      {/* Chat Modal */}
+      {chatSubject && (
+        <EgzaminChat
+          subject={chatSubject}
+          onClose={() => setChatSubject(null)}
+        />
+      )}
     </div>
   );
 };

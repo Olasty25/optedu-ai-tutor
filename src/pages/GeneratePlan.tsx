@@ -12,6 +12,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { buildApiUrl, API_ENDPOINTS } from "@/lib/config";
 
 const GeneratePlan = () => {
   const navigate = useNavigate();
@@ -148,7 +149,7 @@ const GeneratePlan = () => {
 
         // If we have sources, use the new backend endpoint
         if (sources.length > 0) {
-          const response = await fetch("/api/generate-plan-with-sources", {
+          const response = await fetch(buildApiUrl(API_ENDPOINTS.GENERATE_PLAN), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
