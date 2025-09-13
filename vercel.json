@@ -4,44 +4,8 @@
   "outputDirectory": "dist",
   "installCommand": "npm install",
   "functions": {
-    "api/chat.js": {
+    "api/**/*.js": {
       "maxDuration": 30
-    },
-    "api/generate-plan-with-sources.js": {
-      "maxDuration": 30
-    },
-    "api/upload-file.js": {
-      "maxDuration": 30
-    },
-    "api/scrape-url.js": {
-      "maxDuration": 30
-    },
-    "api/create-checkout-session.js": {
-      "maxDuration": 10
-    },
-    "api/messages/**/*.js": {
-      "maxDuration": 10
-    },
-    "api/generated-content.js": {
-      "maxDuration": 10
-    },
-    "api/generated-content/**/*.js": {
-      "maxDuration": 10
-    },
-    "api/generated-content/delete/**/*.js": {
-      "maxDuration": 10
-    },
-    "api/study-plan.js": {
-      "maxDuration": 10
-    },
-    "api/study-plan/**/*.js": {
-      "maxDuration": 10
-    },
-    "api/study-plans/**/*.js": {
-      "maxDuration": 10
-    },
-    "api/test-routes.js": {
-      "maxDuration": 5
     }
   },
   "rewrites": [
