@@ -1,5 +1,5 @@
-import OpenAI from "openai";
-import { kv } from '@vercel/kv';
+const OpenAI = require("openai");
+const { kv } = require('@vercel/kv');
 
 export default async function handler(req, res) {
   // Enable CORS

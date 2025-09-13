@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+const OpenAI = require("openai");
 
 export default async function handler(req, res) {
   // Enable CORS

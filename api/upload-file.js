@@ -1,11 +1,11 @@
-import formidable from 'formidable';
-import fs from 'fs';
-import path from 'path';
-import mammoth from 'mammoth';
-import * as cheerio from 'cheerio';
-import axios from 'axios';
+const formidable = require('formidable');
+const fs = require('fs');
+const path = require('path');
+const mammoth = require('mammoth');
+const cheerio = require('cheerio');
+const axios = require('axios');
 
-export const config = {
+module.exports.config = {
   api: {
     bodyParser: false,
   },
@@ -78,7 +78,7 @@ const processFile = async (filePath, originalName) => {
   }
 };
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
