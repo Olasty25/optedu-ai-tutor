@@ -5,8 +5,8 @@ const isProduction = import.meta.env.PROD;
 // Get the base URL for API calls
 export const getApiBaseUrl = () => {
   if (isDevelopment) {
-    // In development, use localhost
-    return 'http://localhost:5000';
+    // In development, use a relative path
+    return '';
   } else {
     // In production, use the current domain
     return window.location.origin;
