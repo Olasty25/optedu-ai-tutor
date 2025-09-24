@@ -9,7 +9,7 @@
       }
     }
   ],
-  "routes": [
+  "rewrites": [
     {
       "src": "/api/(.*)",
       "dest": "/api/$1"
