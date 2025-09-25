@@ -1,7 +1,7 @@
 import cheerio from 'cheerio';
 import axios from 'axios';
 
-export default async function handler(req, res) {
+const handler = async (req, res) => {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -74,3 +74,5 @@ export default async function handler(req, res) {
     });
   }
 }
+
+export default handler;
