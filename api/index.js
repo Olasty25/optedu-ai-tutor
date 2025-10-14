@@ -52,9 +52,15 @@ const upload = multer({
   }
 });
 
+// Initialize OpenAI client
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
+
+// Check if API key is configured
+if (!process.env.OPENAI_API_KEY) {
+  console.error('⚠️ WARNING: OPENAI_API_KEY is not set!');
+}
 
 // File processing functions
 const processPDF = async (buffer, originalName) => {
@@ -157,10 +163,24 @@ app.get('/', (req, res) => {
   res.json({ message: 'Optedu AI Backend Server is running!', status: 'ok' });
 });
 
+app.get('/api', (req, res) => {
+  res.json({ message: 'Optedu AI Backend Server is running!', status: 'ok' });
+});
+
 // Chat endpoint
-app.post("/chat", async (req, res) => {
+app.post("/api/chat", async (req, res) => {
   try {
     const { type, message, userId, studyPlanId } = req.body;
+
+    console.log('📨 Chat request received:', { type, userId, studyPlanId, messageLength: message?.length });
+
+    // Check if OpenAI API key is available
+    if (!process.env.OPENAI_API_KEY) {
+      console.error('❌ OPENAI_API_KEY is not set');
+      return res.status(500).json({ 
+        error: "OpenAI API key is not configured. Please add OPENAI_API_KEY to environment variables." 
+      });
+    }
 
     // Create user if doesn't exist
     if (userId) {
@@ -224,12 +244,14 @@ app.post("/chat", async (req, res) => {
       ];
     }
 
+    console.log('🤖 Calling OpenAI API...');
     const response = await client.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages
     });
 
     const aiReply = response.choices[0].message.content;
+    console.log('✅ OpenAI response received');
 
     // Save AI response if userId and studyPlanId provided
     if (userId && studyPlanId && type === "chat") {
@@ -237,17 +259,18 @@ app.post("/chat", async (req, res) => {
       await saveMessage(aiMessageId, userId, studyPlanId, "ai", aiReply);
     }
 
-    console.log("OpenAI result:", response);
-
     res.json({ reply: aiReply });
   } catch (err) {
-    console.error("OpenAI API error:", err.message);
-    res.status(500).send("Error talking to AI");
+    console.error("❌ Chat error:", err);
+    res.status(500).json({ 
+      error: err.message || "Error talking to AI",
+      details: err.response?.data || err.toString()
+    });
   }
 });
 
 // File upload endpoint
-app.post("/upload-file", upload.single('file'), async (req, res) => {
+app.post("/api/upload-file", upload.single('file'), async (req, res) => {
   try {
     console.log("File upload request received");
     console.log("Request body:", req.body);
@@ -292,7 +315,7 @@ app.post("/upload-file", upload.single('file'), async (req, res) => {
 });
 
 // Web scraping endpoint
-app.post("/scrape-url", async (req, res) => {
+app.post("/api/scrape-url", async (req, res) => {
   try {
     const { url, userId, studyPlanId } = req.body;
     
@@ -324,7 +347,7 @@ app.post("/scrape-url", async (req, res) => {
 });
 
 // Generate study plan with sources
-app.post("/generate-plan-with-sources", async (req, res) => {
+app.post("/api/generate-plan-with-sources", async (req, res) => {
   try {
     const { title, description, sources, userId, studyPlanId, goals } = req.body;
     
@@ -425,7 +448,7 @@ app.post("/generate-plan-with-sources", async (req, res) => {
 });
 
 // Get messages for a study plan
-app.get("/messages/:userId/:studyPlanId", async (req, res) => {
+app.get("/api/messages/:userId/:studyPlanId", async (req, res) => {
   try {
     const { userId, studyPlanId } = req.params;
     const messages = await getMessages(userId, studyPlanId);
@@ -437,7 +460,7 @@ app.get("/messages/:userId/:studyPlanId", async (req, res) => {
 });
 
 // Delete messages for a study plan
-app.delete("/messages/:userId/:studyPlanId", async (req, res) => {
+app.delete("/api/messages/:userId/:studyPlanId", async (req, res) => {
   try {
     const { userId, studyPlanId } = req.params;
     await deleteMessages(userId, studyPlanId);
@@ -449,7 +472,7 @@ app.delete("/messages/:userId/:studyPlanId", async (req, res) => {
 });
 
 // Save generated content
-app.post("/generated-content", async (req, res) => {
+app.post("/api/generated-content", async (req, res) => {
   try {
     const { contentId, userId, studyPlanId, type, title, data } = req.body;
     await saveGeneratedContent(contentId, userId, studyPlanId, type, title, data);
@@ -461,7 +484,7 @@ app.post("/generated-content", async (req, res) => {
 });
 
 // Get generated content for a study plan
-app.get("/generated-content/:userId/:studyPlanId", async (req, res) => {
+app.get("/api/generated-content/:userId/:studyPlanId", async (req, res) => {
   try {
     const { userId, studyPlanId } = req.params;
     const content = await getGeneratedContent(userId, studyPlanId);
@@ -473,7 +496,7 @@ app.get("/generated-content/:userId/:studyPlanId", async (req, res) => {
 });
 
 // Delete generated content
-app.delete("/generated-content/:contentId/:userId", async (req, res) => {
+app.delete("/api/generated-content/:contentId/:userId", async (req, res) => {
   try {
     const { contentId, userId } = req.params;
     await deleteGeneratedContent(contentId, userId);
@@ -485,7 +508,7 @@ app.delete("/generated-content/:contentId/:userId", async (req, res) => {
 });
 
 // Save study plan
-app.post("/study-plan", async (req, res) => {
+app.post("/api/study-plan", async (req, res) => {
   try {
     const { planId, userId, title, description } = req.body;
     await createStudyPlan(planId, userId, title, description);
@@ -497,7 +520,7 @@ app.post("/study-plan", async (req, res) => {
 });
 
 // Delete study plan
-app.delete("/study-plan/:planId/:userId", async (req, res) => {
+app.delete("/api/study-plan/:planId/:userId", async (req, res) => {
   try {
     const { planId, userId } = req.params;
     const result = await deleteStudyPlan(planId, userId);
@@ -517,7 +540,7 @@ app.delete("/study-plan/:planId/:userId", async (req, res) => {
 });
 
 // Get user study plans count
-app.get("/study-plans/count/:userId", async (req, res) => {
+app.get("/api/study-plans/count/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
     const plans = await getUserStudyPlans(userId);
@@ -529,7 +552,7 @@ app.get("/study-plans/count/:userId", async (req, res) => {
 });
 
 // Get message count for a study plan
-app.get("/messages/count/:userId/:studyPlanId", async (req, res) => {
+app.get("/api/messages/count/:userId/:studyPlanId", async (req, res) => {
   try {
     const { userId, studyPlanId } = req.params;
     const messages = await getMessages(userId, studyPlanId);
@@ -542,4 +565,5 @@ app.get("/messages/count/:userId/:studyPlanId", async (req, res) => {
   }
 });
 
+// Export for Vercel serverless
 export default app;
