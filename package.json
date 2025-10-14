@@ -45,7 +45,6 @@
     "@tanstack/react-query": "^5.83.0",
     "@vercel/kv": "^1.0.0",
     "axios": "^1.6.2",
-    "better-sqlite3": "^12.2.0",
     "cheerio": "^1.0.0-rc.12",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

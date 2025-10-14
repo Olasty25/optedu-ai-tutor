@@ -164,15 +164,15 @@ app.post("/chat", async (req, res) => {
 
     // Create user if doesn't exist
     if (userId) {
-      createUser(userId);
+      await createUser(userId);
     }
 
     // Create study plan if doesn't exist (for testing)
     if (studyPlanId && userId) {
       try {
-        const existingPlan = getStudyPlan(studyPlanId);
+        const existingPlan = await getStudyPlan(studyPlanId);
         if (!existingPlan) {
-          createStudyPlan(studyPlanId, userId, "Test Study Plan", "Auto-created for testing");
+          await createStudyPlan(studyPlanId, userId, "Test Study Plan", "Auto-created for testing");
         }
       } catch (error) {
         console.log("Study plan creation skipped:", error.message);
@@ -193,14 +193,14 @@ app.post("/chat", async (req, res) => {
     // Save user message first (so it's part of history)
     if (userId && studyPlanId && type === "chat") {
       const userMessageId = Date.now().toString();
-      saveMessage(userMessageId, userId, studyPlanId, "user", message);
+      await saveMessage(userMessageId, userId, studyPlanId, "user", message);
     }
 
     // Build messages with rolling history for chat type
     let messages = [{ role: "system", content: systemPrompt }];
     if (type === "chat" && userId && studyPlanId) {
       try {
-        const prior = getMessages(userId, studyPlanId) || [];
+        const prior = await getMessages(userId, studyPlanId) || [];
         // Map DB rows to OpenAI chat message roles
         const mapped = prior.map((m) => ({
           role: m.type === "user" ? "user" : "assistant",
@@ -234,7 +234,7 @@ app.post("/chat", async (req, res) => {
     // Save AI response if userId and studyPlanId provided
     if (userId && studyPlanId && type === "chat") {
       const aiMessageId = (Date.now() + 1).toString();
-      saveMessage(aiMessageId, userId, studyPlanId, "ai", aiReply);
+      await saveMessage(aiMessageId, userId, studyPlanId, "ai", aiReply);
     }
 
     console.log("OpenAI result:", response);
@@ -334,15 +334,15 @@ app.post("/generate-plan-with-sources", async (req, res) => {
 
     // Create user if doesn't exist
     if (userId) {
-      createUser(userId);
+      await createUser(userId);
     }
 
     // Create study plan if doesn't exist
     if (studyPlanId && userId) {
       try {
-        const existingPlan = getStudyPlan(studyPlanId);
+        const existingPlan = await getStudyPlan(studyPlanId);
         if (!existingPlan) {
-          createStudyPlan(studyPlanId, userId, title, description);
+          await createStudyPlan(studyPlanId, userId, title, description);
         }
       } catch (error) {
         console.log("Study plan creation skipped:", error.message);
@@ -425,10 +425,10 @@ app.post("/generate-plan-with-sources", async (req, res) => {
 });
 
 // Get messages for a study plan
-app.get("/messages/:userId/:studyPlanId", (req, res) => {
+app.get("/messages/:userId/:studyPlanId", async (req, res) => {
   try {
     const { userId, studyPlanId } = req.params;
-    const messages = getMessages(userId, studyPlanId);
+    const messages = await getMessages(userId, studyPlanId);
     res.json({ messages });
   } catch (err) {
     console.error("Error fetching messages:", err.message);
@@ -437,10 +437,10 @@ app.get("/messages/:userId/:studyPlanId", (req, res) => {
 });
 
 // Delete messages for a study plan
-app.delete("/messages/:userId/:studyPlanId", (req, res) => {
+app.delete("/messages/:userId/:studyPlanId", async (req, res) => {
   try {
     const { userId, studyPlanId } = req.params;
-    deleteMessages(userId, studyPlanId);
+    await deleteMessages(userId, studyPlanId);
     res.json({ success: true });
   } catch (err) {
     console.error("Error deleting messages:", err.message);
@@ -449,10 +449,10 @@ app.delete("/messages/:userId/:studyPlanId", (req, res) => {
 });
 
 // Save generated content
-app.post("/generated-content", (req, res) => {
+app.post("/generated-content", async (req, res) => {
   try {
     const { contentId, userId, studyPlanId, type, title, data } = req.body;
-    saveGeneratedContent(contentId, userId, studyPlanId, type, title, data);
+    await saveGeneratedContent(contentId, userId, studyPlanId, type, title, data);
     res.json({ success: true });
   } catch (err) {
     console.error("Error saving generated content:", err.message);
@@ -461,10 +461,10 @@ app.post("/generated-content", (req, res) => {
 });
 
 // Get generated content for a study plan
-app.get("/generated-content/:userId/:studyPlanId", (req, res) => {
+app.get("/generated-content/:userId/:studyPlanId", async (req, res) => {
   try {
     const { userId, studyPlanId } = req.params;
-    const content = getGeneratedContent(userId, studyPlanId);
+    const content = await getGeneratedContent(userId, studyPlanId);
     res.json({ content });
   } catch (err) {
     console.error("Error fetching generated content:", err.message);
@@ -473,10 +473,10 @@ app.get("/generated-content/:userId/:studyPlanId", (req, res) => {
 });
 
 // Delete generated content
-app.delete("/generated-content/:contentId/:userId", (req, res) => {
+app.delete("/generated-content/:contentId/:userId", async (req, res) => {
   try {
     const { contentId, userId } = req.params;
-    deleteGeneratedContent(contentId, userId);
+    await deleteGeneratedContent(contentId, userId);
     res.json({ success: true });
   } catch (err) {
     console.error("Error deleting generated content:", err.message);
@@ -485,10 +485,10 @@ app.delete("/generated-content/:contentId/:userId", (req, res) => {
 });
 
 // Save study plan
-app.post("/study-plan", (req, res) => {
+app.post("/study-plan", async (req, res) => {
   try {
     const { planId, userId, title, description } = req.body;
-    createStudyPlan(planId, userId, title, description);
+    await createStudyPlan(planId, userId, title, description);
     res.json({ success: true });
   } catch (err) {
     console.error("Error saving study plan:", err.message);
@@ -497,17 +497,17 @@ app.post("/study-plan", (req, res) => {
 });
 
 // Delete study plan
-app.delete("/study-plan/:planId/:userId", (req, res) => {
+app.delete("/study-plan/:planId/:userId", async (req, res) => {
   try {
     const { planId, userId } = req.params;
-    const result = deleteStudyPlan(planId, userId);
+    const result = await deleteStudyPlan(planId, userId);
     
     if (result.changes === 0) {
       return res.status(404).json({ error: "Study plan not found or not owned by user" });
     }
     
     // Also delete associated messages and generated content
-    deleteMessages(userId, planId);
+    await deleteMessages(userId, planId);
     
     res.json({ success: true });
   } catch (err) {
@@ -517,10 +517,10 @@ app.delete("/study-plan/:planId/:userId", (req, res) => {
 });
 
 // Get user study plans count
-app.get("/study-plans/count/:userId", (req, res) => {
+app.get("/study-plans/count/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
-    const plans = getUserStudyPlans(userId);
+    const plans = await getUserStudyPlans(userId);
     res.json({ count: plans.length, plans });
   } catch (err) {
     console.error("Error getting study plans count:", err.message);
@@ -529,10 +529,10 @@ app.get("/study-plans/count/:userId", (req, res) => {
 });
 
 // Get message count for a study plan
-app.get("/messages/count/:userId/:studyPlanId", (req, res) => {
+app.get("/messages/count/:userId/:studyPlanId", async (req, res) => {
   try {
     const { userId, studyPlanId } = req.params;
-    const messages = getMessages(userId, studyPlanId);
+    const messages = await getMessages(userId, studyPlanId);
     // Count only user messages (questions/actions)
     const userMessages = messages.filter(msg => msg.type === 'user');
     res.json({ count: userMessages.length, totalMessages: messages.length });

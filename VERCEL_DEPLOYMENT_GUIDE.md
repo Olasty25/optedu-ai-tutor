@@ -1,5 +1,15 @@
 # Vercel Deployment Guide
 
+⚠️ **This guide is outdated!** Please use the new guide instead:
+
+👉 **[VERCEL_SETUP_COMPLETE.md](./VERCEL_SETUP_COMPLETE.md)** 👈
+
+The backend has been updated to work properly on Vercel with Vercel KV (Redis) instead of SQLite.
+
+---
+
+## Old Guide (Deprecated)
+
 This guide will help you deploy your Optedu AI Tutor app to Vercel with both frontend and backend working on the internet.
 
 ## Prerequisites
