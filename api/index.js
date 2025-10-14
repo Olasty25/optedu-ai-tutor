@@ -443,9 +443,18 @@ app.post("/api/generate-plan-with-sources", async (req, res) => {
 });
 
 // Get messages for a study plan
-app.get("/api/messages/:userId/:studyPlanId", async (req, res) => {
+app.get("/api/messages", async (req, res) => {
   try {
-    const { userId, studyPlanId } = req.params;
+    const { userId, studyPlanId, action } = req.query;
+    
+    // Handle count action
+    if (action === 'count') {
+      const messages = await getMessages(userId, studyPlanId);
+      const userMessages = messages.filter(msg => msg.type === 'user');
+      return res.json({ count: userMessages.length, totalMessages: messages.length });
+    }
+    
+    // Regular messages fetch
     const messages = await getMessages(userId, studyPlanId);
     res.json({ messages });
   } catch (err) {
@@ -455,9 +464,9 @@ app.get("/api/messages/:userId/:studyPlanId", async (req, res) => {
 });
 
 // Delete messages for a study plan
-app.delete("/api/messages/:userId/:studyPlanId", async (req, res) => {
+app.delete("/api/messages", async (req, res) => {
   try {
-    const { userId, studyPlanId } = req.params;
+    const { userId, studyPlanId } = req.query;
     await deleteMessages(userId, studyPlanId);
     res.json({ success: true });
   } catch (err) {
@@ -479,9 +488,9 @@ app.post("/api/generated-content", async (req, res) => {
 });
 
 // Get generated content for a study plan
-app.get("/api/generated-content/:userId/:studyPlanId", async (req, res) => {
+app.get("/api/generated-content", async (req, res) => {
   try {
-    const { userId, studyPlanId } = req.params;
+    const { userId, studyPlanId } = req.query;
     const content = await getGeneratedContent(userId, studyPlanId);
     res.json({ content });
   } catch (err) {
@@ -491,9 +500,9 @@ app.get("/api/generated-content/:userId/:studyPlanId", async (req, res) => {
 });
 
 // Delete generated content
-app.delete("/api/generated-content/:contentId/:userId", async (req, res) => {
+app.delete("/api/generated-content", async (req, res) => {
   try {
-    const { contentId, userId } = req.params;
+    const { contentId, userId } = req.query;
     await deleteGeneratedContent(contentId, userId);
     res.json({ success: true });
   } catch (err) {
@@ -515,9 +524,9 @@ app.post("/api/study-plan", async (req, res) => {
 });
 
 // Delete study plan
-app.delete("/api/study-plan/:planId/:userId", async (req, res) => {
+app.delete("/api/study-plan", async (req, res) => {
   try {
-    const { planId, userId } = req.params;
+    const { planId, userId } = req.query;
     const result = await deleteStudyPlan(planId, userId);
     
     if (result.changes === 0) {
@@ -535,9 +544,9 @@ app.delete("/api/study-plan/:planId/:userId", async (req, res) => {
 });
 
 // Get user study plans count
-app.get("/api/study-plans/count/:userId", async (req, res) => {
+app.get("/api/study-plans/count", async (req, res) => {
   try {
-    const { userId } = req.params;
+    const { userId } = req.query;
     const plans = await getUserStudyPlans(userId);
     res.json({ count: plans.length, plans });
   } catch (err) {
@@ -546,19 +555,6 @@ app.get("/api/study-plans/count/:userId", async (req, res) => {
   }
 });
 
-// Get message count for a study plan
-app.get("/api/messages/count/:userId/:studyPlanId", async (req, res) => {
-  try {
-    const { userId, studyPlanId } = req.params;
-    const messages = await getMessages(userId, studyPlanId);
-    // Count only user messages (questions/actions)
-    const userMessages = messages.filter(msg => msg.type === 'user');
-    res.json({ count: userMessages.length, totalMessages: messages.length });
-  } catch (err) {
-    console.error("Error getting message count:", err.message);
-    res.status(500).json({ error: "Failed to get message count" });
-  }
-});
 
 // Export for Vercel serverless - wrap Express app in a handler
 export default (req, res) => {
