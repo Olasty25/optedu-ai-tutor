@@ -3,11 +3,9 @@ import cors from "cors";
 import multer from "multer";
 import OpenAI from "openai";
 import mammoth from "mammoth";
-import cheerio from "cheerio";
+import * as cheerio from "cheerio";
 import axios from "axios";
-import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
 
 // Import database functions
 import {
@@ -23,9 +21,6 @@ import {
   deleteStudyPlan,
   getUserStudyPlans
 } from "./database.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -565,5 +560,7 @@ app.get("/api/messages/count/:userId/:studyPlanId", async (req, res) => {
   }
 });
 
-// Export for Vercel serverless
-export default app;
+// Export for Vercel serverless - wrap Express app in a handler
+export default (req, res) => {
+  return app(req, res);
+};
