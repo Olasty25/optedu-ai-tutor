@@ -163,7 +163,7 @@ app.get('/api', (req, res) => {
 });
 
 // Chat endpoint
-app.post("/api/chat", async (req, res) => {
+app.post("/chat", async (req, res) => {
   try {
     const { type, message, userId, studyPlanId } = req.body;
 
@@ -265,7 +265,7 @@ app.post("/api/chat", async (req, res) => {
 });
 
 // File upload endpoint
-app.post("/api/upload-file", upload.single('file'), async (req, res) => {
+app.post("/upload-file", upload.single('file'), async (req, res) => {
   try {
     console.log("File upload request received");
     console.log("Request body:", req.body);
@@ -310,7 +310,7 @@ app.post("/api/upload-file", upload.single('file'), async (req, res) => {
 });
 
 // Web scraping endpoint
-app.post("/api/scrape-url", async (req, res) => {
+app.post("/scrape-url", async (req, res) => {
   try {
     const { url, userId, studyPlanId } = req.body;
     
@@ -342,7 +342,7 @@ app.post("/api/scrape-url", async (req, res) => {
 });
 
 // Generate study plan with sources
-app.post("/api/generate-plan-with-sources", async (req, res) => {
+app.post("/generate-plan-with-sources", async (req, res) => {
   try {
     const { title, description, sources, userId, studyPlanId, goals } = req.body;
     
@@ -443,7 +443,7 @@ app.post("/api/generate-plan-with-sources", async (req, res) => {
 });
 
 // Get messages for a study plan
-app.get("/api/messages", async (req, res) => {
+app.get("/messages", async (req, res) => {
   try {
     const { userId, studyPlanId, action } = req.query;
     
@@ -464,7 +464,7 @@ app.get("/api/messages", async (req, res) => {
 });
 
 // Delete messages for a study plan
-app.delete("/api/messages", async (req, res) => {
+app.delete("/messages", async (req, res) => {
   try {
     const { userId, studyPlanId } = req.query;
     await deleteMessages(userId, studyPlanId);
@@ -476,7 +476,7 @@ app.delete("/api/messages", async (req, res) => {
 });
 
 // Save generated content
-app.post("/api/generated-content", async (req, res) => {
+app.post("/generated-content", async (req, res) => {
   try {
     const { contentId, userId, studyPlanId, type, title, data } = req.body;
     await saveGeneratedContent(contentId, userId, studyPlanId, type, title, data);
@@ -488,7 +488,7 @@ app.post("/api/generated-content", async (req, res) => {
 });
 
 // Get generated content for a study plan
-app.get("/api/generated-content", async (req, res) => {
+app.get("/generated-content", async (req, res) => {
   try {
     const { userId, studyPlanId } = req.query;
     const content = await getGeneratedContent(userId, studyPlanId);
@@ -500,7 +500,7 @@ app.get("/api/generated-content", async (req, res) => {
 });
 
 // Delete generated content
-app.delete("/api/generated-content", async (req, res) => {
+app.delete("/generated-content", async (req, res) => {
   try {
     const { contentId, userId } = req.query;
     await deleteGeneratedContent(contentId, userId);
@@ -512,7 +512,7 @@ app.delete("/api/generated-content", async (req, res) => {
 });
 
 // Save study plan
-app.post("/api/study-plan", async (req, res) => {
+app.post("/study-plan", async (req, res) => {
   try {
     const { planId, userId, title, description } = req.body;
     await createStudyPlan(planId, userId, title, description);
@@ -524,7 +524,7 @@ app.post("/api/study-plan", async (req, res) => {
 });
 
 // Delete study plan
-app.delete("/api/study-plan", async (req, res) => {
+app.delete("/study-plan", async (req, res) => {
   try {
     const { planId, userId } = req.query;
     const result = await deleteStudyPlan(planId, userId);
@@ -544,7 +544,7 @@ app.delete("/api/study-plan", async (req, res) => {
 });
 
 // Get user study plans count
-app.get("/api/study-plans/count", async (req, res) => {
+app.get("/study-plans/count", async (req, res) => {
   try {
     const { userId } = req.query;
     const plans = await getUserStudyPlans(userId);
