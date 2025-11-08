@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { IntlProvider,FormattedMessage } from 'react-intl';
 import { 
   BookOpen, 
   Brain, 
@@ -41,7 +42,7 @@ const Landing = () => {
     
     // Decrement the counter
     setBetaSlotsRemaining(prev => Math.max(0, prev - 1));
-    
+    //setBetaSlotsRemaining(betaSlotsRemaining  - 1);
     // Grant access and show message
     grantProForEmail(email);
     setBetaMsg(t('landing.grantAccessMsg'));
@@ -52,6 +53,12 @@ const Landing = () => {
   const resetBetaSlots = () => {
     setBetaSlotsRemaining(30);
     setBetaMsg(null);
+  };
+
+  //MY CODE: "There are x slots remaining"
+  const howManySlotsRemaining = () => {
+    //return t('landing.betaSlotsRemaining', { count: betaSlotsRemaining });
+    return "There are " + betaSlotsRemaining + " slots remaining";
   };
   
   return (
@@ -83,8 +90,7 @@ const Landing = () => {
             <Link to="/register">
               <Button 
                 size="lg" 
-                className="bg-gradient-hero hover:opacity-90 transition-opacity text-base md:text-lg px-6 md:px-8 py-4 md:py-6 rounded-xl shadow-glow w-full sm:w-auto"
-              >
+                className="bg-gradient-hero hover:opacity-90 transition-opacity text-base md:text-lg px-6 md:px-8 py-4 md:py-6 rounded-xl shadow-glow w-full sm:w-auto">
                 {t('landing.tryButton')}
                 <ArrowRight className="ml-2 h-4 w-4 md:h-5 md:w-5" />
               </Button>
@@ -180,9 +186,11 @@ const Landing = () => {
             <div className="flex items-center justify-center mb-6 md:mb-8">
               <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-lg px-4 md:px-6 py-2 md:py-3">
                 <Users className="h-4 w-4 md:h-5 md:w-5 mr-2" />
-                <span className="font-semibold text-sm md:text-base">
-                  {t('landing.betaSlotsRemaining', { count: betaSlotsRemaining })}
-                </span>
+                <p className="font-semibold text-sm md:text-base">
+                 
+                There are only {betaSlotsRemaining} slots remaining!
+
+                </p>
               </div>
             </div>
             <form
