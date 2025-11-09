@@ -42,6 +42,7 @@
     "@radix-ui/react-toggle-group": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.7",
     "@stripe/stripe-js": "^7.9.0",
+    "@supabase/supabase-js": "^2.80.0",
     "@tanstack/react-query": "^5.83.0",
     "@vercel/kv": "^1.0.0",
     "axios": "^1.6.2",
