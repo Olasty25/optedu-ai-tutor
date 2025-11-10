@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Send, Video, BookOpen, ArrowLeft, Bot, User } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { buildApiUrl, API_ENDPOINTS } from "@/lib/config";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Message {
   id: string;
@@ -20,9 +21,11 @@ interface EgzaminChatProps {
 
 const EgzaminChat = ({ subject, onClose }: EgzaminChatProps) => {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Subject-specific prompts and video links
@@ -47,15 +50,56 @@ const EgzaminChat = ({ subject, onClose }: EgzaminChatProps) => {
   const currentSubjectData = subjectData[subject as keyof typeof subjectData];
 
   useEffect(() => {
-    // Add welcome message when component mounts
-    const welcomeMessage: Message = {
-      id: "welcome",
-      text: `Cześć! ${currentSubjectData.prompt}`,
-      isUser: false,
-      timestamp: new Date()
+    // Load conversation history from database
+    const loadHistory = async () => {
+      if (!user) return;
+
+      setIsLoadingHistory(true);
+      try {
+        const { data, error } = await supabase
+          .from('chat_messages')
+          .select('*')
+          .eq('user_id', user.uid)
+          .eq('subject', subject)
+          .order('created_at', { ascending: true });
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          const loadedMessages = data.map((msg: any) => ({
+            id: msg.id,
+            text: msg.content,
+            isUser: msg.role === 'user',
+            timestamp: new Date(msg.created_at)
+          }));
+          setMessages(loadedMessages);
+        } else {
+          // Add welcome message if no history
+          const welcomeMessage: Message = {
+            id: "welcome",
+            text: `Cześć! ${currentSubjectData.prompt}`,
+            isUser: false,
+            timestamp: new Date()
+          };
+          setMessages([welcomeMessage]);
+        }
+      } catch (error) {
+        console.error('Error loading history:', error);
+        // Add welcome message on error
+        const welcomeMessage: Message = {
+          id: "welcome",
+          text: `Cześć! ${currentSubjectData.prompt}`,
+          isUser: false,
+          timestamp: new Date()
+        };
+        setMessages([welcomeMessage]);
+      } finally {
+        setIsLoadingHistory(false);
+      }
     };
-    setMessages([welcomeMessage]);
-  }, [subject, currentSubjectData.prompt]);
+
+    loadHistory();
+  }, [subject, currentSubjectData.prompt, user]);
 
   useEffect(() => {
     scrollToBottom();
@@ -66,7 +110,7 @@ const EgzaminChat = ({ subject, onClose }: EgzaminChatProps) => {
   };
 
   const sendMessage = async () => {
-    if (!inputMessage.trim() || isLoading) return;
+    if (!inputMessage.trim() || isLoading || !user) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -76,26 +120,21 @@ const EgzaminChat = ({ subject, onClose }: EgzaminChatProps) => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const messageToSend = inputMessage;
     setInputMessage("");
     setIsLoading(true);
 
     try {
-      const response = await fetch(buildApiUrl(API_ENDPOINTS.CHAT), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ 
-          message: `${currentSubjectData.prompt}\n\nUżytkownik pyta: ${inputMessage}` 
-        }),
+      const { data, error } = await supabase.functions.invoke('chat-gpt', {
+        body: { 
+          message: messageToSend,
+          subject: subject,
+          userId: user.uid
+        }
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to get response');
-      }
+      if (error) throw error;
 
-      const data = await response.json();
-      
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         text: data.reply,
@@ -162,6 +201,12 @@ const EgzaminChat = ({ subject, onClose }: EgzaminChatProps) => {
         <CardContent className="flex-1 flex flex-col p-0">
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {isLoadingHistory ? (
+              <div className="flex justify-center items-center h-full">
+                <div className="text-muted-foreground">Ładowanie historii rozmów...</div>
+              </div>
+            ) : (
+              <>
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -204,6 +249,8 @@ const EgzaminChat = ({ subject, onClose }: EgzaminChatProps) => {
                   </div>
                 </div>
               </div>
+            )}
+            </>
             )}
             <div ref={messagesEndRef} />
           </div>
