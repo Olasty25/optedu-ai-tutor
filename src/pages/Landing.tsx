@@ -42,7 +42,7 @@ const Landing = () => {
     
     // Decrement the counter
     setBetaSlotsRemaining(prev => Math.max(0, prev - 1));
-    //setBetaSlotsRemaining(betaSlotsRemaining  - 1);
+    
     // Grant access and show message
     grantProForEmail(email);
     setBetaMsg(t('landing.grantAccessMsg'));

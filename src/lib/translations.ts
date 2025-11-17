@@ -88,6 +88,8 @@ export const translations = {
       learningStyleTitle: "Learning Style",
       learningGoalsTitle: "Learning Goals",
       availabilityTitle: "Time Availability",
+      howOldAreYou: "How old are you?",
+      whatAreYouGoodIn: "What are you good in?",
       educationLevel: "What is your current education level?",
       educationOptions: {
         highSchool: "High School",
